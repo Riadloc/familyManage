@@ -22,8 +22,9 @@ html {
  * Remove the margin in all browsers (opinionated).
  */
 
-body {
+*, body, html {
   margin: 0;
+  padding: 0;
 }
 
 /**
@@ -444,4 +445,11 @@ template {
 
 [hidden] {
   display: none;
+}
+
+/**
+ * list
+ */
+ul>li, ol>li {
+  list-style-type: none
 }

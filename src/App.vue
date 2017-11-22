@@ -17,7 +17,10 @@ export default {
   -moz-osx-font-smoothing: grayscale
   width 100vw
   height 100vh
-  background: #84fab0
-  background-image: -webkit-linear-gradient(120deg, #84fab0 0%, #8fd3f4 100%)
-  background-image: linear-gradient(120deg, #84fab0 0%, #8fd3f4 100%)
+  background-image url("./assets/design-tools.jpg")
+  overflow hidden
+.clearfix:after
+  content: ""
+  display: table
+  clear: both
 </style>
