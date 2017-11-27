@@ -7,7 +7,9 @@
       <div class="ui-text">
         <div class="ui-text-head clearfix">
           <h2 class="ui-text-nickname">{{ user.nickname }}</h2>
-          <el-button  class="ui-text-edit" type="info" plain><router-link>编辑个人资料</router-link></el-button>
+          <el-button  class="ui-text-edit" type="info" plain>
+            <a>编辑个人资料</a>
+          </el-button>
         </div>
         <ul class="ui-text-content">
           <li><label>ID：</label>{{ user.id }}</li>
@@ -46,7 +48,18 @@
 </template>
 <script>
 export default {
-  name: 'user'
+  name: 'user',
+  data() {
+    return {
+      user: {
+        id: '10081',
+        username: 'Champion',
+        nickname: '邓江胡习',
+        gender: '男',
+        phone: '13700000000'
+      }
+    }
+  }
 }
 </script>
 <style lang="stylus">
@@ -84,6 +97,7 @@ export default {
       .ui-text-content
         font-size 16px
         li>label
+          display inline-block
           width 60px
           text-align right
 </style>

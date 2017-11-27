@@ -91,14 +91,7 @@ export default {
 }
 </script>
 <style lang="stylus">
-$body-bg = #c1bdba
-$form-bg = #13232f
-$white = #ffffff
-$main = #66b1ff
-$main-light = lighten($main,5%)
-$main-dark = darken($main,5%)
-$gray-light= #a0b3b0
-$gray= #ddd
+@import '../assets/const'
 
 .login-field
   text-align center

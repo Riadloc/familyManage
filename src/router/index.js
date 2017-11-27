@@ -4,6 +4,7 @@ import Login from '@/components/Login'
 import Management from '@/components/Management'
 import User from '@/components/User'
 import Family from '@/components/Family'
+import Bill from '@/components/Bill'
 
 Vue.use(Router)
 
@@ -21,14 +22,19 @@ export default new Router({
       component: Management,
       children: [
         {
-          path: '/user',
+          path: 'user',
           name: 'User',
           component: User
         },
         {
-          path: '/family',
+          path: 'family',
           name: 'Family',
           component: Family
+        },
+        {
+          path: 'bill',
+          name: 'Bill',
+          component: Bill
         }
       ]
     }

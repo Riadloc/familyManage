@@ -3,25 +3,40 @@
     <el-container style="height: 100%">
       <el-header>
         <div class="logo"></div>
+        <ul class="user-area">
+          <li class="user-messge-notify">
+            <el-badge :value="200" is-dot :max="99" class="item">消息</el-badge>
+          </li>
+          <li class="user-ctrl">
+            <el-dropdown>
+              <span class="el-dropdown-link">
+                孙悟空<i class="el-icon-arrow-down el-icon--right"></i>
+              </span>
+              <el-dropdown-menu slot="dropdown">
+                <el-dropdown-item>退出登录</el-dropdown-item>
+              </el-dropdown-menu>
+            </el-dropdown>
+          </li>
+        </ul>
       </el-header>
         <el-container>
           <el-aside>
             <el-menu
-              default-active="1"
+              default-active="User"
               class="el-menu-vertical-demo"
               @select="handleSelect"
               background-color="#545c64"
               text-color="#fff"
               active-text-color="#ffd04b">
-              <el-menu-item index="1">
+              <el-menu-item index="User">
                 <i class="el-icon-menu"></i>
                 <span slot="title">个人信息</span>
               </el-menu-item>
-              <el-menu-item index="2">
+              <el-menu-item index="Bill">
                 <i class="el-icon-goods"></i>
                 <span slot="title">账单模块</span>
               </el-menu-item>
-              <el-menu-item index="3">
+              <el-menu-item index="Family">
                 <i class="el-icon-setting"></i>
                 <span slot="title">家庭模块</span>
               </el-menu-item>
@@ -47,20 +62,12 @@
 <script>
 export default {
   name: 'management',
-  data() {
-    return {
-      user: {
-        id: '10081',
-        username: 'Champion',
-        nickname: '邓江胡习',
-        gender: '男',
-        phone: '13700000000'
-      }
-    }
+  mounted() {
+    this.$router.push({name: 'User'});
   },
   methods: {
-    handleSelect(index) {
-      console.log('ddd')
+    handleSelect(val) {
+      this.$router.push({name: val});
     }
   }
 }
@@ -79,9 +86,17 @@ export default {
       display inline-block
       background-image url('/static/logo.png')
       background-size cover
+    .user-area
+      float right
+      li
+        display inline-block
+        line-height 1
+        margin-right 10px
+        font-size 14px
+        color #5a5e66
   .el-main
     background #eee
-    padding 40px 300px
+    padding 40px
     .bill-info
       .bi-list
         line-height 2
