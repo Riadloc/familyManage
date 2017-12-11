@@ -10,7 +10,7 @@
           <li class="user-ctrl">
             <el-dropdown>
               <span class="el-dropdown-link">
-                孙悟空<i class="el-icon-arrow-down el-icon--right"></i>
+                {{ user.userName }}<i class="el-icon-arrow-down el-icon--right"></i>
               </span>
               <el-dropdown-menu slot="dropdown">
                 <el-dropdown-item>退出登录</el-dropdown-item>
@@ -25,7 +25,7 @@
               default-active="User"
               class="el-menu-vertical-demo"
               @select="handleSelect"
-              background-color="#545c64"
+              background-color="#2D2F33"
               text-color="#fff"
               active-text-color="#ffd04b">
               <el-menu-item index="User">
@@ -62,8 +62,14 @@
 <script>
 export default {
   name: 'management',
+  data() {
+    return {
+      user: {}
+    }
+  },
   mounted() {
     this.$router.push({name: 'User'});
+    this.user = JSON.parse(window.sessionStorage.getItem('user'))
   },
   methods: {
     handleSelect(val) {
@@ -115,5 +121,7 @@ export default {
             font-size 14px
   .el-aside
     width 160px!important
-    background-color rgb(84, 92, 100)
+    background-color #2D2F33
+    .el-menu
+      border none
 </style>

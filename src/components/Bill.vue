@@ -1,58 +1,65 @@
 <template>
   <div id="bill">
-    <div class="bill-list-wrapper">
-      <h2>收支表</h2>
-      <ul class="bill-list">
-        <li>
-          <div class="item-left">
-            <strong>今天</strong>
-            <p>2017年11月27日</p>
-          </div>
-          <div class="item-right">
-            <span>0.00</span><br/>
-            <span>0.00</span>
-          </div>
-        </li>
-        <li>
-          <div class="item-left">
-            <strong>本周</strong>
-            <p>11月27日-12月3日</p>
-          </div>
-          <div class="item-right">
-            <span>0.00</span><br/>
-            <span>0.00</span>
-          </div>
-        </li>
-        <li>
-          <div class="item-left">
-            <strong>本月</strong>
-            <p>11月1日-11月30日</p>
-          </div>
-          <div class="item-right">
-            <span>0.00</span><br/>
-            <span>0.00</span>
-          </div>
-        </li>
-        <li>
-          <div class="item-left">
-            <strong>今年</strong>
-            <p>2017年</p>
-          </div>
-          <div class="item-right">
-            <span>0.00</span><br/>
-            <span>0.00</span>
-          </div>
-        </li>
-      </ul>
-    </div>
-    <div class="bill-statistic">
-      <div class="bs-head">
-        <label>本月收支统计图</label>
+    <div class="bill-row">
+      <div class="bill-list-wrapper">
+        <h2>收支表</h2>
+        <ul class="bill-list">
+          <li>
+            <div class="item-left">
+              <strong>今天</strong>
+              <p>2017年11月27日</p>
+            </div>
+            <div class="item-right">
+              <span>0.00</span><br/>
+              <span>0.00</span>
+            </div>
+          </li>
+          <li>
+            <div class="item-left">
+              <strong>本周</strong>
+              <p>11月27日-12月3日</p>
+            </div>
+            <div class="item-right">
+              <span>0.00</span><br/>
+              <span>0.00</span>
+            </div>
+          </li>
+          <li>
+            <div class="item-left">
+              <strong>本月</strong>
+              <p>11月1日-11月30日</p>
+            </div>
+            <div class="item-right">
+              <span>0.00</span><br/>
+              <span>0.00</span>
+            </div>
+          </li>
+          <li>
+            <div class="item-left">
+              <strong>今年</strong>
+              <p>2017年</p>
+            </div>
+            <div class="item-right">
+              <span>0.00</span><br/>
+              <span>0.00</span>
+            </div>
+          </li>
+        </ul>
       </div>
-      <chart :options="pie"></chart>
+      <div class="bill-statistic">
+        <div class="bs-head">
+          <label>本月收支统计图</label>
+        </div>
+        <chart :options="pie"></chart>
+      </div>
     </div>
-    <div class="bill-comparison">
-      <chart :options="bar"></chart>
+    <div class="bill-row">
+      <div class="bill-comparison">
+        <div class="bc-head">
+          <label>本月收支统计图</label>
+        </div>
+        <chart :options="bar"></chart>
+      </div>
     </div>
   </div>
 </template>
@@ -60,6 +67,7 @@
 import ECharts from 'vue-echarts/components/ECharts.vue'
 import 'echarts/lib/chart/pie'
 import 'echarts/lib/chart/bar'
+import 'echarts/lib/component/tooltip'
 export default {
   name: 'bill',
   components: { 'chart': ECharts },
@@ -136,7 +144,7 @@ export default {
             max: 250,
             interval: 50,
             axisLabel: {
-              formatter: '{value} ml'
+              formatter: '{value}'
             }
           }
         ],
@@ -159,12 +167,16 @@ export default {
 </script>
 <style lang="stylus">
 #bill
+  .bill-row:nth-child(1)
+    display flex
+    margin 0 0 20px 0
   .bill-list-wrapper
     display inline-block
     border 1px solid #ededed
     padding 0 4px
     background-color #F8F8F8
     vertical-align top
+    box-shadow 0 0 8px 2px #999
     h2
       height 40px
       line-height 40px
@@ -190,16 +202,37 @@ export default {
   .bill-statistic
     display inline-block
     background-color #F8F8F8
+    box-shadow 0 0 8px 2px #999
+    flex 1
+    padding 0 4px
+    margin 0 0 0 20px
     .bs-head
       height 40px
       line-height 40px
       color #FF5C0C
       font-size 15px
       border-bottom 1px dashed #E3E3E3
+      padding: 0 5px
+      label
+        font-weight bold
     .echarts
       width 360px
       height 240px
   .bill-comparison
-    .echats
-      height 240px
+    background-color #F8F8F8
+    box-shadow 0 0 8px 2px #999
+    padding 0 4px
+    .bc-head
+      height 40px
+      line-height 40px
+      color #FF5C0C
+      font-size 15px
+      border-bottom 1px dashed #E3E3E3
+      padding: 0 5px
+      label
+        font-weight bold
+    .echarts
+      width 100%
+      height 400px
+
 </style>

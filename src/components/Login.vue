@@ -5,39 +5,39 @@
         <li class="tab active"><a href="#signin">登录</a></li>
         <li class="tab"><a href="#signup">注册</a></li>
       </ul>
-      <form id="signin">
+      <form id="signin" ref="signin">
         <h1>登录月球</h1>
-        <el-input v-model="signin.username" placeholder="请输入用户名">
+        <el-input v-model="signin.username" name="userId" placeholder="请输入用户名">
           <label slot="prepend"><span>*</span>用户名：</label>
         </el-input>
-        <el-input v-model="signin.psw" type="password" placeholder="请输入密码">
+        <el-input v-model="signin.psw" name="password" type="password" placeholder="请输入密码">
           <label slot="prepend"><span>*</span>密码：</label>
         </el-input>
-        <el-button type="primary" @click="signIn" :loading="loading">登录</el-button>
+        <el-button type="primary" @click="signIn" :loading="signin.loading">登录</el-button>
       </form>
-      <form id="signup" style="display: none">
+      <form id="signup" style="display: none" ref="signup">
         <h1>户籍登记</h1>
-        <el-input v-model="signup.username" placeholder="请输入用户名">
+        <el-input v-model="signup.username" name="userId" placeholder="请输入用户名">
           <label slot="prepend"><span>*</span>用户名：</label>
         </el-input>
-        <el-input v-model="signup.nickname" placeholder="请输入昵称">
+        <el-input v-model="signup.nickname" name="userName" placeholder="请输入昵称">
           <label slot="prepend"><span>*</span>昵称：</label>
         </el-input>
-        <el-input v-model="signup.psw" type="password" placeholder="请输入密码">
+        <el-input v-model="signup.psw" type="password" name="password" placeholder="请输入密码">
           <label slot="prepend"><span>*</span>密码：</label>
         </el-input>
-        <el-input v-model="signup.repsw" type="password" placeholder="请输入密码">
+        <el-input v-model="signup.repsw" type="password" placeholder="请再次输入密码">
           <label slot="prepend"><span>*</span>确认密码：</label>
         </el-input>
-        <el-radio-group v-model="signup.gender">
+        <el-radio-group v-model="signup.gender" name="sex">
           <el-radio label="privacy">保密</el-radio>
           <el-radio label="male">男</el-radio>
           <el-radio label="female">女</el-radio>
         </el-radio-group>
-        <el-input v-model="signup.phone" placeholder="请输入手机号">
+        <el-input v-model="signup.phone" placeholder="请输入手机号" name="mobile">
           <label slot="prepend"><span>*</span>手机号码：</label>
         </el-input>
-        <el-button type="primary" @click="signUp" :loading="loading">注册</el-button>
+        <el-button type="primary" @click="signUp" :loading="signup.loading">注册</el-button>
       </form>
     </div>
 </div>
@@ -50,7 +50,8 @@ export default {
     return {
       signin: {
         username: '',
-        psw: ''
+        psw: '',
+        loading: false
       },
       signup: {
         username: '',
@@ -58,9 +59,9 @@ export default {
         psw: '',
         repsw: '',
         gender: 'privacy',
-        phone: ''
-      },
-      loading: false
+        phone: '',
+        loading: false
+      }
     }
   },
   mounted() {
@@ -75,17 +76,72 @@ export default {
   },
   methods: {
     signIn() {
-      if (this.username === '') {
-        this.$message.error('请输入用户名！')
-      } else if (this.psw === '') {
-        this.$message.error('请输入密码')
-      } else {
-        this.loading = true
-        this.$router.push({name: 'Management'})
-      }
+      if (!this.formCheck('IN')) return false
+      this.$set(this.signin, 'loading', true)
+      const formdata = new FormData(this.$refs.signin)
+      this.$http.post('api/user/login', formdata)
+        .then((res) => {
+          this.$set(this.signin, 'loading', false)
+          if (parseInt(res.data.code) === 200) {
+            this.$message.success('登录成功！')
+            window.sessionStorage.setItem('user', res.data.user)
+            this.$router.push({name: 'Management'})
+          } else {
+            this.$message.error(res.data.msg)
+          }
+        })
+        .catch((e) => {
+          console.log('error!')
+          this.$set(this.signin, 'loading', false)
+          this.$message.error(e.data.msg)
+        })
     },
     signUp() {
-      console.log('c')
+      if (!this.formCheck('UP')) return false
+      this.$set(this.signup, 'loading', true)
+      const formdata = new FormData(this.$refs.signup)
+      formdata.append('sex', this.signup.gender)
+      this.$http.post('api/user/register', formdata)
+        .then((res) => {
+          this.$set(this.signup, 'loading', false)
+          if (parseInt(res.data.code) === 200) {
+            this.$message.success('注册成功！')
+            this.$router.push({name: 'Management'})
+          } else {
+            this.$message.error(res.data.msg)
+          }
+        })
+        .catch((e) => {
+          console.log('error!')
+          this.$set(this.signup, 'loading', false)
+          this.$message.error(e.data.msg)
+        })
+    },
+    formCheck(type) {
+      if (type === 'IN') {
+        if (this.signin.username === '') {
+          this.$message.error('请输入用户名！')
+          return false
+        } else if (this.signin.psw === '') {
+          this.$message.error('请输入密码！')
+          return false
+        }
+      } else if (type === 'UP') {
+        if (this.signup.username === '') {
+          this.$message.error('请输入用户名！')
+          return false
+        } else if (this.signup.psw === '' || this.signup.repsw === '') {
+          this.$message.error('请输入密码！')
+          return false
+        } else if (this.signup.psw !== this.signup.repsw) {
+          this.$message.error('两次输入密码不一致！')
+          return false
+        } else if (this.signup.phone === '') {
+          this.$message.error('请输入手机号码！')
+          return false
+        }
+      }
+      return true
     }
   }
 }

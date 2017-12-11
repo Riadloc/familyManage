@@ -2,20 +2,20 @@
   <div id="user-wrapper">
     <div class="user-info">
       <div class="ui-avatar">
-        <img src="../assets/asteroids.jpg" />
+        <img :src="user.photo" />
       </div>
       <div class="ui-text">
         <div class="ui-text-head clearfix">
-          <h2 class="ui-text-nickname">{{ user.nickname }}</h2>
+          <h2 class="ui-text-nickname">{{ user.userName }}</h2>
           <el-button  class="ui-text-edit" type="info" plain>
             <a>编辑个人资料</a>
           </el-button>
         </div>
         <ul class="ui-text-content">
-          <li><label>ID：</label>{{ user.id }}</li>
-          <li><label>账号：</label>{{ user.username }}</li>
-          <li><label>性别：</label>{{ user.gender }}</li>
-          <li><label>手机：</label>{{ user.phone }}</li>
+          <li><label>ID：</label>{{ user.userId }}</li>
+          <li><label>账号：</label></li>
+          <li><label>性别：</label>{{ user.sex }}</li>
+          <li><label>手机：</label>{{ user.mobile }}</li>
         </ul>
       </div>
     </div>
@@ -25,11 +25,11 @@
         <h2>总收益</h2>
         <ul class="bi-list clearfix">
           <li>
-            <strong>10,000</strong>
+            <strong>{{ user.allIncome }}</strong>
             <span>总支出</span>
           </li>
           <li>
-            <strong>10,000</strong>
+            <strong>{{ user.allSpending }}</strong>
             <span>总收入</span>
           </li>
         </ul>
@@ -38,7 +38,7 @@
         <h2>总资产</h2>
         <ul class="bi-list clearfix">
           <li>
-            <strong>10,000</strong>
+            <strong>{{ user.balance }}</strong>
             <span>总资产</span>
           </li>
         </ul>
@@ -52,18 +52,25 @@ export default {
   data() {
     return {
       user: {
-        id: '10081',
-        username: 'Champion',
-        nickname: '邓江胡习',
-        gender: '男',
-        phone: '13700000000'
+        userId: '',
+        userName: '',
+        sex: '',
+        mobile: ''
       }
     }
+  },
+  mounted() {
+    const user = JSON.parse(window.sessionStorage.getItem('user'))
+    if (!user) this.$router.push('/')
+    this.user = user
   }
 }
 </script>
 <style lang="stylus">
 #user-wrapper
+  background-color #F8F8F8
+  padding 20px 10px
+  box-shadow 0 0 8px 2px #999
   .divider
     margin 20px 0
     &:after

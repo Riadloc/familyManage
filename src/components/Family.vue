@@ -98,6 +98,10 @@ export default {
 </script>
 <style lang="stylus">
 #family
+  background-color #F8F8F8
+  padding 20px 10px
+  box-shadow 0 0 8px 2px #999
+  min-height 90%
   .family-shortinfo
     .fs-head
       margin-bottom 20px
@@ -113,6 +117,6 @@ export default {
       label
         line-height 30px
         height 30px
-        font-size 16px
-        color #333
+        font-size 12px
+        color #666
 </style>
