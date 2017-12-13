@@ -1,5 +1,9 @@
 <template>
   <div id="bill">
+    <div class="bill-topnav">
+      <el-button type="primary" size="medium" @click="takeNotes" plain>记一笔</el-button>
+      <el-button type="info" size="medium" plain>流水账</el-button>
+    </div>
     <div class="bill-row">
       <div class="bill-list-wrapper">
         <h2>收支表</h2>
@@ -49,6 +53,10 @@
       <div class="bill-statistic">
         <div class="bs-head">
           <label>本月收支统计图</label>
+          <el-radio-group v-model="bsTab" size="small" class="bs-tab">
+            <el-radio-button label="收入"></el-radio-button>
+            <el-radio-button label="支出"></el-radio-button>
+          </el-radio-group>
         </div>
         <chart :options="pie"></chart>
       </div>
@@ -57,10 +65,25 @@
       <div class="bill-comparison">
         <div class="bc-head">
           <label>本月收支统计图</label>
+          <ul class="bc-year-ctrl">
+            <li><i class="el-icon-caret-left"></i></li>
+            <li class="current-year">2017</li>
+            <li><i class="el-icon-caret-right"></i></li>
+          </ul>
         </div>
         <chart :options="bar"></chart>
       </div>
     </div>
+    <el-dialog
+      :visible.sync="dialogVisible"
+      width="30%"
+      :before-close="handleClose">
+      <span>这是一段信息</span>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="dialogVisible = false">取 消</el-button>
+        <el-button type="primary" @click="dialogVisible = false">确 定</el-button>
+      </span>
+    </el-dialog>
   </div>
 </template>
 <script>
@@ -68,11 +91,14 @@ import ECharts from 'vue-echarts/components/ECharts.vue'
 import 'echarts/lib/chart/pie'
 import 'echarts/lib/chart/bar'
 import 'echarts/lib/component/tooltip'
+import 'echarts/lib/component/legend'
 export default {
   name: 'bill',
   components: { 'chart': ECharts },
   data() {
     return {
+      bsTab: '收入',
+      dialogVisible: false,
       pie: {
         tooltip: {
           trigger: 'item',
@@ -80,7 +106,7 @@ export default {
         },
         legend: {
           orient: 'vertical',
-          left: 'left',
+          left: 'right',
           data: ['直接访问', '邮件营销', '联盟广告', '视频广告', '搜索引擎']
         },
         series: [
@@ -162,12 +188,21 @@ export default {
         ]
       }
     }
+  },
+  methods: {
+    handleClose() {},
+    takeNotes() {
+      this.dialogVisible = true;
+    }
   }
 }
 </script>
 <style lang="stylus">
 #bill
-  .bill-row:nth-child(1)
+  .bill-topnav
+    margin 0 0 10px 0
+    text-align right
+  .bill-row:nth-child(2)
     display flex
     margin 0 0 20px 0
   .bill-list-wrapper
@@ -215,8 +250,11 @@ export default {
       padding: 0 5px
       label
         font-weight bold
+      .bs-tab
+        float right
+        margin 4px 0 0 0
     .echarts
-      width 360px
+      width 100%
       height 240px
   .bill-comparison
     background-color #F8F8F8
@@ -231,6 +269,20 @@ export default {
       padding: 0 5px
       label
         font-weight bold
+      .bc-year-ctrl
+        display inline-flex
+        width 100px
+        color #888
+        &>li
+          flex 1 0
+          text-align center
+          vertical-align middle
+          cursor pointer
+          &>i
+            font-size 18px
+        .current-year
+          color #555
+          cursor text
     .echarts
       width 100%
       height 400px
