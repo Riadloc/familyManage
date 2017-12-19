@@ -78,7 +78,7 @@
       :visible.sync="dialogVisible"
       width="30%"
       :before-close="handleClose">
-      <span>这是一段信息</span>
+      <FundNotes></FundNotes>
       <span slot="footer" class="dialog-footer">
         <el-button @click="dialogVisible = false">取 消</el-button>
         <el-button type="primary" @click="dialogVisible = false">确 定</el-button>
@@ -87,6 +87,7 @@
   </div>
 </template>
 <script>
+import Notes from './Notes'
 import ECharts from 'vue-echarts/components/ECharts.vue'
 import 'echarts/lib/chart/pie'
 import 'echarts/lib/chart/bar'
@@ -94,7 +95,7 @@ import 'echarts/lib/component/tooltip'
 import 'echarts/lib/component/legend'
 export default {
   name: 'bill',
-  components: { 'chart': ECharts },
+  components: { 'chart': ECharts, FundNotes: Notes },
   data() {
     return {
       bsTab: '收入',
