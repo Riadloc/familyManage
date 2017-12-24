@@ -91,9 +91,9 @@ export default {
           }
         })
         .catch((e) => {
-          console.log('error!')
+          console.error(e)
           this.$set(this.signin, 'loading', false)
-          this.$message.error(e.data.msg)
+          this.$message.error('登录失败')
         })
     },
     signUp() {
@@ -106,6 +106,7 @@ export default {
           this.$set(this.signup, 'loading', false)
           if (parseInt(res.data.code) === 200) {
             this.$message.success('注册成功！')
+            window.sessionStorage.setItem('user', res.data.user)
             this.$router.push({name: 'Management'})
           } else {
             this.$message.error(res.data.msg)

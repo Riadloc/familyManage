@@ -103,6 +103,7 @@ export default {
   .el-main
     background #eee
     padding 40px
+    overflow hidden
     .bill-info
       .bi-list
         line-height 2
