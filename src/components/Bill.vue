@@ -96,7 +96,7 @@ export default {
         legend: {
           orient: 'vertical',
           left: 'right',
-          data: []
+          data: ['无']
         },
         series: [
           {
@@ -104,7 +104,7 @@ export default {
             type: 'pie',
             radius: '80%',
             center: ['50%', '50%'],
-            data: [],
+            data: [0],
             itemStyle: {
               emphasis: {
                 shadowBlur: 10,
@@ -255,18 +255,20 @@ export default {
           const data = res.data;
           if (data.code === '200') {
             const accounts = JSON.parse(data.accounts)
-            const series = accounts.filter((item) => item[key] > 0).map((item) => {
+            if (accounts.length) {
+              const series = accounts.filter((item) => item[key] > 0).map((item) => {
               return {
                 value: item[key],
                 name: item['typeName']
               }
-            })
-            const legend = series.map((item) => item.name)
+              })
+              const legend = series.map((item) => item.name)
+              pie.mergeOptions({
+                legend: {data: legend},
+                series: {data: series}
+              })
+            }
             pie.hideLoading()
-            pie.mergeOptions({
-              legend: {data: legend},
-              series: {data: series}
-            })
           } else {
             this.$message.error(data.msg);
           }

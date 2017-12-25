@@ -30,9 +30,8 @@
           <label slot="prepend"><span>*</span>确认密码：</label>
         </el-input>
         <el-radio-group v-model="signup.gender" name="sex">
-          <el-radio label="privacy">保密</el-radio>
-          <el-radio label="male">男</el-radio>
-          <el-radio label="female">女</el-radio>
+          <el-radio label="0">男</el-radio>
+          <el-radio label="1">女</el-radio>
         </el-radio-group>
         <el-input v-model="signup.phone" placeholder="请输入手机号" name="mobile">
           <label slot="prepend"><span>*</span>手机号码：</label>
@@ -58,7 +57,7 @@ export default {
         nickname: '',
         psw: '',
         repsw: '',
-        gender: 'privacy',
+        gender: 'male',
         phone: '',
         loading: false
       }
@@ -113,9 +112,9 @@ export default {
           }
         })
         .catch((e) => {
-          console.log('error!')
+          console.error(e)
           this.$set(this.signup, 'loading', false)
-          this.$message.error(e.data.msg)
+          this.$message.error('出错！')
         })
     },
     formCheck(type) {

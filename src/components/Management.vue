@@ -6,14 +6,21 @@
         <ul class="user-area">
           <li class="user-messge-notify">
             <el-badge :value="200" is-dot :max="99" class="item">消息</el-badge>
+            <el-dialog
+              title="消息"
+              :visible="messageModal"
+              width="800px"
+              @close="messageModal = false"
+              >
+            </el-dialog>
           </li>
           <li class="user-ctrl">
-            <el-dropdown>
+            <el-dropdown @command="handleCommand">
               <span class="el-dropdown-link">
                 {{ user.userName }}<i class="el-icon-arrow-down el-icon--right"></i>
               </span>
               <el-dropdown-menu slot="dropdown">
-                <el-dropdown-item>退出登录</el-dropdown-item>
+                <el-dropdown-item command="loginOut">退出登录</el-dropdown-item>
               </el-dropdown-menu>
             </el-dropdown>
           </li>
@@ -44,36 +51,63 @@
           </el-aside>
           <el-main>
             <router-view></router-view>
-            <!-- <div class="divider"></div> -->
-            <!-- <div class="bill-info">
-              <h2>总资产</h2>
-              <ul class="bi-list clearfix">
-                <li>
-                  <strong>10,000</strong>
-                  <span>总资产</span>
-                </li>
-              </ul>
-            </div> -->
           </el-main>
         </el-container>
     </el-container>
   </div>
 </template>
 <script>
+import { LOGIN_OUT, GET_REQUESTS } from '../config'
 export default {
   name: 'management',
   data() {
     return {
-      user: {}
+      user: {},
+      messageModal: false
     }
   },
   mounted() {
     this.$router.push({name: 'User'});
     this.user = JSON.parse(window.sessionStorage.getItem('user'))
+    this.getMessages()
   },
   methods: {
     handleSelect(val) {
       this.$router.push({name: val});
+    },
+    handleCommand(command) {
+      if (command === 'loginOut') {
+        this.$http.get(LOGIN_OUT)
+          .then((res) => {
+            const data = res.data
+            if (data.code === '200') {
+              this.$message.success('登出成功！')
+              this.$router.push({name: 'Login'})
+            } else {
+              this.$message.error(data.msg)
+            }
+          })
+          .catch((e) => {
+            console.error(e)
+            this.$message.error('出错！')
+          })
+      }
+    },
+    getMessages() {
+      this.$http.get(GET_REQUESTS)
+        .then((res) => {
+          const data = res.data
+          if (data.code === '200') {
+            this.$message.success('获取成功！')
+            console.log(data)
+          } else {
+            this.$message.error(data.msg)
+          }
+        })
+        .catch((e) => {
+          console.error(e)
+          this.$message.error('出错！')
+        })
     }
   }
 }
@@ -103,23 +137,6 @@ export default {
   .el-main
     background #eee
     padding 40px
-    overflow hidden
-    .bill-info
-      .bi-list
-        line-height 2
-        li
-          float left
-          padding: 0 20px
-          text-align center
-          &:nth-child(1)
-            border-left 0
-          border-left 1px solid #999
-          strong
-            display block
-            font-size 24px
-          span
-            display block
-            font-size 14px
   .el-aside
     width 160px!important
     background-color #2D2F33

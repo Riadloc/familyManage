@@ -2,10 +2,11 @@
   <div id="family">
     <div class="family-shortinfo">
       <div class="fs-head">
-        <div class="fs-ctrl-btns">
-          <el-button type="primary" @click="createFa">创建家庭</el-button>
-          <el-button type="primary" @click="joinFa">加入家庭</el-button>
-          <el-button type="primary" @click="quitFa">退出家庭</el-button>
+        <div class="fs-ctrl-btns" ref="btns">
+          <el-button type="primary" @click="create_status = true" v-show="!family.userInfoForms.length">创建</el-button>
+          <el-button type="primary" @click="search_status = true" v-show="!family.userInfoForms.length">加入</el-button>
+          <el-button type="primary" @click="updateFa" v-show="family.userInfoForms.length">修改</el-button>
+          <el-button type="primary" @click="quitFa" v-show="family.userInfoForms.length">退出</el-button>
         </div>
       </div>
       <div class="fs-content">
@@ -21,6 +22,15 @@
             <el-table-column prop="allIncome" label="收入"></el-table-column>
             <el-table-column prop="allSpending" label="支出"></el-table-column>
             <el-table-column prop="balance" label="状态"></el-table-column>
+            <el-table-column
+              fixed="right"
+              label="操作"
+              width="100">
+              <template slot-scope="scope">
+                <el-button  v-if="scope.$index > 0" @click="kikMember(scope)" type="primary" size="small">移除</el-button>
+                <span v-else>管理员</span>
+              </template>
+            </el-table-column>
           </el-table>
         </template>
         <template v-else>
@@ -29,8 +39,9 @@
       </div>
       <el-dialog
         title="提示"
-        :visible.sync="dialogVisible"
+        :visible="dialogVisible"
         width="800px"
+        @close="closeModal"
         >
         <div class="function-area">
           <div class="fs-join" v-show="search_status">
@@ -61,9 +72,13 @@
             <el-input v-model="familyName" placeholder="请输入创建家庭名字">
             </el-input>
           </div>
+          <div class="fs-update" v-show="update_status">
+            <el-input v-model="familyName" placeholder="请输入创建家庭名字">
+            </el-input>
+          </div>
         </div>
         <span slot="footer" class="dialog-footer">
-          <el-button @click="dialogVisible = false">取 消</el-button>
+          <el-button @click="closeModal">取 消</el-button>
           <el-button type="primary" @click="confirmInput">确 定</el-button>
         </span>
       </el-dialog>
@@ -72,6 +87,7 @@
 </template>
 <script>
 import qs from 'qs'
+import { JOIN_GROUP, GROUP_INFO, UPDATE_GROUP } from '../config'
 export default {
   name: 'family',
   data() {
@@ -79,9 +95,9 @@ export default {
       groupInfo: '',
       familyName: '',
       searchRes: [],
-      dialogVisible: false,
       search_status: false,
       create_status: false,
+      update_status: false,
       family: {
         groupId: '',
         groupName: '',
@@ -89,23 +105,31 @@ export default {
       }
     }
   },
+  computed: {
+    dialogVisible() {
+      return (this.search_status || this.create_status || this.update_status)
+    }
+  },
   mounted() {
     const user = JSON.parse(window.sessionStorage.getItem('user'))
     if (!user) this.$router.push('/')
     if (user.groupId === 0) {
+      this.$message.info('未加入家庭组')
+      this.$refs.btns.style.display = 'block'
     } else {
-      this.loadMembers();
+      this.loadMembers(user.groupId)
     }
   },
   methods: {
-    loadMembers() {
-      this.$http.get('/api/group/getGroupInfo',
-      {params: qs.stringify({groupName: this.familyName})})
+    loadMembers(id) {
+      this.$http.get(GROUP_INFO,
+      {params: qs.stringify({groupInfo: id})})
         .then((res) => {
           const data = res.data;
           if (data.code === '200') {
-            const { groupInfoForm } = data;
-            this.family = JSON.parse(groupInfoForm);
+            const { groupInfoForm } = data
+            this.family = JSON.parse(groupInfoForm)
+            this.$refs.btns.style.display = 'block'
           } else {
             this.$message.error(data.msg);
           }
@@ -115,18 +139,34 @@ export default {
           this.$message.error('网络连接失败')
         })
     },
-    joinFa() {
-      this.dialogVisible = true;
-      this.create_status = false;
-      this.search_status = true;
+    closeModal() {
+      this.familyName = ''
+      this.create_status = false
+      this.search_status = false
+      this.update_status = false
+    },
+    updateFa() {
+      this.familyName = this.family.groupName
+      this.update_status = true
     },
     joinGroup(row) {
-      console.log(row)
+      const { groupId } = row
+      this.$http.post(JOIN_GROUP, qs.stringify({ groupId }))
+        .then((res) => {
+          const data = res.data
+          if (data.code === '200') {
+            this.$message.success('加入成功！')
+          } else {
+            this.$message.error(data.msg)
+          }
+        })
+        .catch((e) => {
+          console.error(e)
+          this.$message.error('出错！')
+        })
     },
-    createFa() {
-      this.dialogVisible = true;
-      this.search_status = false;
-      this.create_status = true;
+    kikMember(scope) {
+      console.log(scope)
     },
     quitFa() {
       this.$confirm('此操作将永久解散该家庭组, 是否继续?', '提示', {
@@ -139,6 +179,7 @@ export default {
               const data = res.data
               if (data.code === '200') {
                 this.$message.success('解散成功！')
+                this.family.userInfoForms.splice(0)
               } else {
                 this.$message.error(data.msg)
               }
@@ -169,13 +210,16 @@ export default {
         })
     },
     confirmInput() {
-      this.dialogVisible = false
       if (this.create_status) {
         this.$http.post('/api/group/createGroup', qs.stringify({groupName: this.familyName}))
           .then((res) => {
             const data = res.data;
             if (data.code === '200') {
               console.log(data.msg)
+              const user = JSON.parse(window.sessionStorage.getItem('user'))
+              user.groupId = data.groupId
+              window.sessionStorage.setItem('user', JSON.stringify(user))
+              this.loadMembers(data.groupId)
               this.$message.success('创建家庭组成功！')
             } else {
               this.$message.error(data.msg);
@@ -185,7 +229,24 @@ export default {
             console.error(e)
             this.$message.error('创建家庭组失败！')
           })
+      } else if (this.update_status) {
+        const groupName = this.familyName
+        this.$http.post(UPDATE_GROUP, qs.stringify({groupName}))
+          .then((res) => {
+            const data = res.data;
+            if (data.code === '200') {
+              this.$set(this.family, 'groupName', groupName)
+              this.$message.success('修改家庭组成功！')
+            } else {
+              this.$message.error(data.msg);
+            }
+          })
+          .catch((e) => {
+            console.error(e)
+            this.$message.error('创建家庭组失败！')
+          })
       }
+      this.closeModal()
     }
   }
 }
@@ -193,14 +254,14 @@ export default {
 <style lang="stylus">
 #family
   background-color #F8F8F8
-  padding 20px 10px
-  box-shadow 0 0 8px 2px #999
+  padding 20px 10px 
   min-height 90%
   .family-shortinfo
     .fs-head
       margin-bottom 20px
       &>div
         margin 10px 0
+        display none
     .fs-content
       label
         line-height 30px
