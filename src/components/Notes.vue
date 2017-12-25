@@ -74,16 +74,15 @@
         width="400px"
         append-to-body>
         <el-form :model="typeForm" label-width="80px">
-          <el-form-item label="金额">
-            <el-input name="amount" placeholder="" type="number" v-model="incomeForm.income">
-            </el-input>
-          </el-form-item>
           <el-form-item label="收入项目">
-            <el-cascader
-              expand-trigger="hover"
-              :options="topOption"
-              v-model="typeForm.father">
-            </el-cascader>
+            <el-select v-model="typeForm.toplevel" placeholder="请选择">
+              <el-option
+                v-for="item in topOptions"
+                :key="item.value"
+                :label="item.label"
+                :value="item.value">
+              </el-option>
+            </el-select>
           </el-form-item>
           <el-form-item label="类型名称">
             <el-input v-model="typeForm.typeName"></el-input>
@@ -110,7 +109,7 @@ export default {
   data() {
     return {
       options: [],
-      topOption: [],
+      topOptions: [],
       incomeForm: {
         income: null,
         type: [],
@@ -135,15 +134,22 @@ export default {
     getIncomeType() {
       this.$http.get('/api/accountType/getAccountType')
         .then((res) => {
-          const toltalTypes = JSON.parse(res.data.types)
-          const types = Array.from(new Set(toltalTypes.map((item) => item.topName)))
-          this.options = types.map((type, index) => {
+          const data = JSON.parse(res.data.types)
+          const toltalTypes = data.types
+          const topTypes = data.topTypes
+          this.options = topTypes.map((item, index) => {
             return {
-              value: `top_${index}`,
-              label: type,
-              children: toltalTypes.filter((it) => it.topName === type).map(({id, typeName}) => {
+              value: item.toplevel,
+              label: item.topname,
+              children: toltalTypes.filter((it) => it.topName === item.topname).map(({id, typeName}) => {
                 return { value: id, label: typeName }
               })
+            }
+          })
+          this.topOptions = topTypes.map((item, index) => {
+            return {
+              value: item.toplevel,
+              label: item.topname
             }
           })
         })
@@ -155,7 +161,17 @@ export default {
       if (command === 'add') {
         this.typeModal = true
       } else if (command === 'update') {
-        this.typeModal = true
+        const type = this.activeTab === 'expense' ? this.expenseForm.type : this.incomeForm.type        
+        if (type.length) {
+          const item = this.options.find(item => item.value === type[0])
+          this.typeForm = {
+            toplevel: type[0],
+            typeName: item.children.find(item => item.value === type[1]).label
+          }
+          this.typeModal = true
+        } else {
+          this.$message.error('请先选择修改分类')
+        }
       } else {
         this.$confirm('确认删除该分类?', '提示', {
           confirmButtonText: '确定',
@@ -167,7 +183,6 @@ export default {
               const data = res.data
               if (data.code === '200') {
                 this.$message.success('删除成功！')
-                this.tableData.splice(index, 1)
               } else {
                 this.$message.error(data.msg)
               }

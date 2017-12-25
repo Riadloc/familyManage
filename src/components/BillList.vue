@@ -138,7 +138,8 @@ export default {
     getTypes() {
       this.$http.get(ACCOUNT_TYPE)
         .then((res) => {
-          const toltalTypes = JSON.parse(res.data.types)
+          const data = JSON.parse(res.data.types)
+          const toltalTypes = data.types
           const types = Array.from(new Set(toltalTypes.map((item) => item.topName)))
           this.options = types.map((type, index) => {
             return {
