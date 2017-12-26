@@ -344,7 +344,7 @@ export default {
       display inline-block
       border 1px solid #ededed
       padding 0 4px
-      background-color #F8F8F8
+      background-color #fff
       vertical-align top
       box-shadow 0 0 8px 2px #999
       h2
@@ -371,7 +371,7 @@ export default {
                 color #819539
     .bill-statistic
       display inline-block
-      background-color #F8F8F8
+      background-color #fff
       box-shadow 0 0 8px 2px #999
       flex 1
       padding 0 4px
@@ -392,7 +392,7 @@ export default {
         width 100%
         height 240px
     .bill-comparison
-      background-color #F8F8F8
+      background-color #fff
       box-shadow 0 0 8px 2px #999
       padding 0 4px
       .bc-head

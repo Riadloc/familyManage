@@ -5,6 +5,7 @@ import Management from '@/components/Management'
 import User from '@/components/User'
 import Family from '@/components/Family'
 import Bill from '@/components/Bill'
+import Config from '@/components/Config'
 
 Vue.use(Router)
 
@@ -35,6 +36,11 @@ export default new Router({
           path: 'bill',
           name: 'Bill',
           component: Bill
+        },
+        {
+          path: 'config',
+          name: 'Config',
+          component: Config
         }
       ]
     }

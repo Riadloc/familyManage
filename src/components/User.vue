@@ -171,7 +171,7 @@ export default {
 </script>
 <style lang="stylus">
 #user-wrapper
-  background-color #F8F8F8
+  background-color #fff
   padding 20px 10px
   .divider
     margin 20px 0

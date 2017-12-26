@@ -23,10 +23,10 @@
         <el-table-column prop="category" label="分类"></el-table-column>
         <el-table-column prop="amount" label="金额"></el-table-column>
         <el-table-column prop="desc" label="备注"></el-table-column>
-        <el-table-column fixed="right" label="操作">
+        <el-table-column fixed="right" label="操作" width="200">
           <template slot-scope="scope">
-            <el-button type="primary" size="small" @click="beforeUpdateAccount(scope.row)">修改</el-button>
-            <el-button type="danger" size="small" @click="removeAccount(scope.row, scope.$index)">删除</el-button>
+            <el-button type="primary" size="mini" @click="beforeUpdateAccount(scope.row)">修改</el-button>
+            <el-button type="danger" size="mini" @click="removeAccount(scope.row, scope.$index)">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -39,19 +39,18 @@
             <el-input name="amount" placeholder="" type="number" v-model="accountForm.amount">
             </el-input>
           </el-form-item>
-          <el-form-item label="收入项目">
+          <el-form-item label="修改项目">
             <el-cascader
               expand-trigger="hover"
               :options="options"
-              v-model="accountForm.typeName">
+              v-model="accountForm.type">
             </el-cascader>
           </el-form-item>
           <el-form-item label="日期">
             <el-date-picker
               v-model="accountForm.gmtCreate"
               type="date"
-              placeholder="选择日期"
-              >
+              placeholder="选择日期">
             </el-date-picker>
           </el-form-item>
           <el-form-item label="备注">
@@ -59,7 +58,7 @@
           </el-form-item>
           <el-form-item>
             <el-button type="primary" @click="updateAccount">提交</el-button>
-            <el-button @click="dialogVisible = false">取消</el-button>
+            <el-button @click="updateModal = false">取消</el-button>
           </el-form-item>
         </el-form>
       </el-dialog>
@@ -77,7 +76,9 @@ export default {
       date: '',
       updateModal: false,
       options: [],
-      accountForm: {},
+      accountForm: {
+        type: []
+      },
       tableData: [],
       totalData: {
         month: '',
@@ -107,7 +108,6 @@ export default {
           const data = res.data;
           if (data.code === '200') {
             const accounts = JSON.parse(data.accounts)
-            // console.log(data)
             const totalIncome = accounts.reduce((a, b) => a + parseInt(b.income), 0)
             const totalSpend = accounts.reduce((a, b) => a + parseInt(b.spending), 0)
             this.$set(this.totalData, 'income', totalIncome)
@@ -116,12 +116,13 @@ export default {
               const bool = parseInt(item.income) > parseInt(item.spending)
               return {
                 id: item.id,
-                typeId: item.type,
+                typeId: parseInt(item.type),
                 gmtCreate: item.gmtCreate,
                 income: item.income,
                 spending: item.spending,
                 type: bool ? '收入' : '支出',
                 category: item.typeName,
+                toplevel: parseInt(item.topLevelId),
                 amount: bool ? item.income : item.spending,
                 desc: item.description
               }
@@ -138,13 +139,14 @@ export default {
     getTypes() {
       this.$http.get(ACCOUNT_TYPE)
         .then((res) => {
-          const toltalTypes = JSON.parse(res.data.types)
-          const types = Array.from(new Set(toltalTypes.map((item) => item.topName)))
-          this.options = types.map((type, index) => {
+          const data = JSON.parse(res.data.types)
+          const toltalTypes = data.types
+          const types = data.topTypes
+          this.options = types.map((item, index) => {
             return {
-              value: `top_${index}`,
-              label: type,
-              children: toltalTypes.filter((it) => it.topName === type).map(({id, typeName}) => {
+              value: item.toplevel,
+              label: item.topname,
+              children: toltalTypes.filter((it) => it.topName === item.topname).map(({id, typeName}) => {
                 return { value: id, label: typeName }
               })
             }
@@ -155,16 +157,15 @@ export default {
         })
     },
     beforeUpdateAccount(row) {
-      const {id, type, typeId, gmtCreate, income, spending, desc, amount} = row
+      const {id, type, typeId, toplevel, gmtCreate, income, spending, desc, amount} = row
       this.accountForm = {
-        id, type: typeId, gmtCreate, income, spending, description: desc, amount, moneyType: type
+        id, type: [toplevel, typeId], gmtCreate, income, spending, description: desc, amount, moneyType: type
       }
-      console.log(this.accountForm)
       this.updateModal = true
     },
     updateAccount() {
       const { id, type, gmtCreate, income, spending, description, amount, moneyType } = this.accountForm
-      const data = { id, type, gmtCreate, income, spending, description }
+      const data = { id, type: type[1], gmtCreate, income, spending, description }
       const key = moneyType === '支出' ? 'spending' : 'income'
       data[key] = parseFloat(data[key]) + parseFloat(amount)
       const date = new Date(data.gmtCreate)

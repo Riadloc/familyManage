@@ -18,7 +18,7 @@
           <el-table :data="family.userInfoForms" border stripe style="width: 100%">
             <el-table-column prop="userName" label="姓名"></el-table-column>
             <el-table-column prop="mobile" label="电话号码"></el-table-column>
-            <el-table-column prop="userName" label="性别"></el-table-column>
+            <el-table-column prop="userName" label="用户名"></el-table-column>
             <el-table-column prop="allIncome" label="收入"></el-table-column>
             <el-table-column prop="allSpending" label="支出"></el-table-column>
             <el-table-column prop="balance" label="状态"></el-table-column>
@@ -87,7 +87,7 @@
 </template>
 <script>
 import qs from 'qs'
-import { JOIN_GROUP, GROUP_INFO, UPDATE_GROUP } from '../config'
+import { JOIN_GROUP, GROUP_INFO, UPDATE_GROUP, REMOVE_MEMBER } from '../config'
 export default {
   name: 'family',
   data() {
@@ -155,7 +155,7 @@ export default {
         .then((res) => {
           const data = res.data
           if (data.code === '200') {
-            this.$message.success('加入成功！')
+            this.$message.success('已发送申请信息！')
           } else {
             this.$message.error(data.msg)
           }
@@ -164,9 +164,25 @@ export default {
           console.error(e)
           this.$message.error('出错！')
         })
+      this.closeModal()
     },
     kikMember(scope) {
       console.log(scope)
+      const { row, $index } = scope
+      this.$http.post(REMOVE_MEMBER, qs.stringify({ removeId: row.id }))
+        .then((res) => {
+          const data = res.data
+          if (data.code === '200') {
+            this.family.userInfoForms.splice($index, 1)
+            this.$message.success('移除成功！')
+          } else {
+            this.$message.error(data.msg)
+          }
+        })
+        .catch((e) => {
+          console.error(e)
+          this.$message.error('出错！')
+        })
     },
     quitFa() {
       this.$confirm('此操作将永久解散该家庭组, 是否继续?', '提示', {
@@ -253,7 +269,7 @@ export default {
 </script>
 <style lang="stylus">
 #family
-  background-color #F8F8F8
+  background-color #fff
   padding 20px 10px 
   min-height 90%
   .family-shortinfo
