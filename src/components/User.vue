@@ -359,6 +359,7 @@ export default {
     border 2px solid #ddd
     border-radius 4px
     padding 0 4px
+    height 400px
     .tips-list
       .tl-title
         margin 12px 0
