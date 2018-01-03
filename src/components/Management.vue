@@ -34,14 +34,17 @@
                 <i class="el-icon-menu" style="font-size: 30px"></i>
                 <span slot="title">个人信息</span>
               </el-menu-item>
-              <el-menu-item index="Bill">
-                <i class="el-icon-goods" style="font-size: 30px"></i>
-                <span slot="title">账单模块</span>
-              </el-menu-item>
               <el-menu-item index="Family">
                 <i class="el-icon-star-on" style="font-size: 30px"></i>
                 <span slot="title">家庭模块</span>
               </el-menu-item>
+              <el-menu-item index="Bill">
+                <i class="el-icon-goods" style="font-size: 30px"></i>
+                <span slot="title">账单模块</span>
+              </el-menu-item>
+              <el-menu-item index="Tips">
+                <i class="el-icon-document" style="font-size: 30px"></i>
+                <span slot="title">小贴士</span>
               </el-menu-item>
               <el-menu-item index="Config">
                 <i class="el-icon-setting" style="font-size: 30px"></i>

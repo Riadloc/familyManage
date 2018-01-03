@@ -56,7 +56,7 @@
               <li @click="barYear++"><i class="el-icon-caret-right"></i></li>
             </ul>
           </div>
-          <chart :options="bar" ref="bar"></chart>
+          <chart :options="bar" ref="bar" @click="clickBar"></chart>
         </div>
       </div>
     </div>
@@ -73,6 +73,7 @@ import 'echarts/lib/chart/pie'
 import 'echarts/lib/chart/bar'
 import 'echarts/lib/component/tooltip'
 import 'echarts/lib/component/legend'
+import { BASIC_ACCOUNT, MONTH_ACCOUNT, RANGE_ACCOUNT } from '../config'
 export default {
   name: 'bill',
   components: { 'chart': ECharts, FundNotes: Notes, BillList },
@@ -81,7 +82,7 @@ export default {
       bsTab: '收入',
       dialogVisible: false,
       pageVisble: true,
-      barYear: 2017,
+      barYear: 2018,
       list: {
         day: {income: 0, spend: 0},
         week: {income: 0, spend: 0},
@@ -125,14 +126,6 @@ export default {
             }
           }
         },
-        toolbox: {
-          feature: {
-              dataView: {show: true, readOnly: false},
-              magicType: {show: true, type: ['line', 'bar']},
-              restore: {show: true},
-              saveAsImage: {show: true}
-          }
-        },
         legend: {
             data: ['收入', '支出']
         },
@@ -148,7 +141,7 @@ export default {
         yAxis: [
           {
             type: 'value',
-            name: '水量',
+            name: '金额',
             min: 0,
             max: 250,
             interval: 50,
@@ -178,7 +171,7 @@ export default {
   mounted() {
     this.getAllTime()
     this.loadPie('收入')
-    this.loadBar(2017)
+    this.loadBar(this.barYear)
     this.loadList()
   },
   watch: {
@@ -218,7 +211,7 @@ export default {
         color: '#4ea397',
         maskColor: 'rgba(255, 255, 255, 0.4)'
       })
-      this.$http.get('/api/account/getMonthAccounts', { params: {year: val} })
+      this.$http.get(MONTH_ACCOUNT, { params: {year: val} })
         .then((res) => {
           const data = res.data;
           if (data.code === '200') {
@@ -250,7 +243,8 @@ export default {
         maskColor: 'rgba(255, 255, 255, 0.4)'
       })
       const key = val === '收入' ? 'income' : 'spending'
-      this.getAccountsByMonth()
+      const { currMonth, nextMonth } = this.time
+      this.$http.get(BASIC_ACCOUNT, {params: {fromDate: currMonth, toDate: nextMonth}})
         .then((res) => {
           const data = res.data;
           if (data.code === '200') {
@@ -278,6 +272,14 @@ export default {
           this.$message.error('请检查网络')
         })
     },
+    clickBar(params) {
+      const { dataIndex: month } = params
+      const currMonth = this.barYear + '-' + (month + 1) + '-01'
+      const nextMonth = moment(currMonth).add(1, 'M').format('YYYY-MM') + '-01'
+      this.time.currMonth = currMonth
+      this.time.nextMonth = nextMonth
+      this.loadPie(this.bsTab)
+    },
     getAccountsByDay() {
       const { day } = this.time
       return this.getAccounts({fromDate: day, toDate: day})
@@ -295,7 +297,7 @@ export default {
       return this.getAccounts({fromDate: year+'-01-01', toDate: (year+1)+'-01-01'})
     },
     getAccounts(date) {
-      return this.$http.get('/api/account/getByConditions', { params: date })
+      return this.$http.get(RANGE_ACCOUNT, { params: date })
     },
     getAllTime() {
       let date = moment().locale('zh-CN')
@@ -309,6 +311,7 @@ export default {
       this.time = {
         day, currWeek, nextWeek, currMonth, nextMonth, year
       }
+      this.barYear = year - 0
     },
     updatePageVisible() {
       this.pageVisble = !this.pageVisble

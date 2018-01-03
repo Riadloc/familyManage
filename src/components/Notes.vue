@@ -14,7 +14,7 @@
             <el-form-item label="支出项目">
               <el-cascader
                 expand-trigger="hover"
-                :options="options"
+                :options="spendOpts"
                 v-model="expenseForm.type">
               </el-cascader>
               <el-dropdown @command="handleCommand">
@@ -48,7 +48,7 @@
             <el-form-item label="收入项目">
               <el-cascader
                 expand-trigger="hover"
-                :options="options"
+                :options="incomeOpts"
                 v-model="incomeForm.type">
               </el-cascader>
               <el-button icon="el-icon-edit" @click="typeModal = true"></el-button>
@@ -108,7 +108,8 @@ export default {
   props: ['dialogVisible'],
   data() {
     return {
-      options: [],
+      incomeOpts: [],
+      spendOpts: [],
       topOptions: [],
       incomeForm: {
         income: null,
@@ -141,13 +142,18 @@ export default {
           const data = JSON.parse(res.data.types)
           const toltalTypes = data.types
           const types = data.topTypes
-          this.options = types.map((item, index) => {
-            return {
+          types.forEach((item, index) => {
+            const opt = {
               value: item.toplevel,
               label: item.topname,
               children: toltalTypes.filter((it) => it.topName === item.topname).map(({id, typeName}) => {
                 return { value: id, label: typeName }
               })
+            }
+            if (item.toplevel - 0 > 19) {
+              this.incomeOpts.push(opt)
+            } else {
+              this.spendOpts.push(opt)
             }
           })
           this.topOptions = types.map(item => {
@@ -252,13 +258,11 @@ export default {
       const date = new Date(formdata.gmtCreate);
       const gmtCreate = date.getFullYear() + '-' + (date.getMonth() + 1) + '-' + date.getDate()
       formdata = Object.assign({}, formdata, {type: formdata.type.slice(-1)[0], gmtCreate})
-      console.log(formdata)
       this.$http.post('/api/account/addAccount', qs.stringify(formdata))
         .then((res) => {
           const data = res.data;
           this.closeDialog()
           if (data.code === '200') {
-            console.log(data.msg)
             this.$message.success('新增账单成功！')
           } else {
             this.$message.error(data.msg);

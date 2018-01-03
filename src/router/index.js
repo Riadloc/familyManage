@@ -5,6 +5,8 @@ import Management from '@/components/Management'
 import User from '@/components/User'
 import Family from '@/components/Family'
 import Bill from '@/components/Bill'
+import Tips from '@/components/Tips'
+import TipsDetail from '@/components/TipsDetail'
 import Config from '@/components/Config'
 
 Vue.use(Router)
@@ -36,6 +38,16 @@ export default new Router({
           path: 'bill',
           name: 'Bill',
           component: Bill
+        },
+        {
+          path: 'tips',
+          name: 'Tips',
+          component: Tips
+        },
+        {
+          path: 'detail',
+          name: 'TipsDetail',
+          component: TipsDetail
         },
         {
           path: 'config',

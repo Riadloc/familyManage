@@ -175,7 +175,6 @@ export default {
           const data = res.data
           if (data.code === '200') {
             this.$message.success('修改成功！')
-            console.log(data)
           } else {
             this.$message.error(data.msg)
           }
