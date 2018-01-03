@@ -131,6 +131,10 @@ export default {
           cursor pointer
   .el-main
     background #eee
+    .el-col
+      &>div
+        background #fff
+        height calc(100vh - 200px)
   .el-aside
     // width 160px!important
     width inherit!important

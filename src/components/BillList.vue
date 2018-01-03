@@ -214,7 +214,6 @@ export default {
 </script>
 <style lang="stylus">
 #bill-list
-  background #fff
   padding 10px
   .bl-datectrl
     height: 44px

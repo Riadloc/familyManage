@@ -26,11 +26,11 @@
               label="操作"
               width="200">
               <template slot-scope="scope">
-                <template v-if="scope.$index > 0">
-                  <el-button @click="handleMemSel(scope.row)" type="primary" size="small">查看</el-button>
+                <el-button @click="handleMemSel(scope.row)" type="primary" size="small" v-if="scope.row.id !== userId">查看</el-button>
+                <template v-if="!scope.row.isManager&&userId === family.managerId">
                   <el-button @click="kikMember(scope)" type="primary" size="small">移除</el-button>
                 </template>
-                <span v-else>管理员</span>
+                <span v-if="scope.row.isManager">管理员</span>
               </template>
             </el-table-column>
           </el-table>
@@ -151,6 +151,7 @@ export default {
   name: 'family',
   data() {
     return {
+      userId: null,
       groupInfo: '',
       familyName: '',
       memberVisible: false,
@@ -192,6 +193,8 @@ export default {
   mounted() {
     const user = JSON.parse(window.sessionStorage.getItem('user'))
     if (!user) this.$router.push('/')
+    this.userId = user.id
+    console.log(user.id)
     if (user.groupId === 0) {
       this.$message.info('未加入家庭组')
       this.$refs.btns.style.display = 'block'
@@ -208,6 +211,7 @@ export default {
           if (data.code === '200') {
             const { groupInfoForm } = data
             this.family = JSON.parse(groupInfoForm)
+            console.log(this.family)
             this.$refs.btns.style.display = 'block'
           } else {
             this.$message.error(data.msg);
@@ -417,9 +421,7 @@ export default {
 </script>
 <style lang="stylus">
 #family
-  background-color #fff
-  padding 20px 10px 
-  min-height 90%
+  padding 20px 10px
   .family-shortinfo
     .fs-head
       margin-bottom 20px

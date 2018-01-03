@@ -332,6 +332,7 @@ export default {
 </script>
 <style lang="stylus">
 #bill
+  background inherit!important
   .bill-topnav
     margin 0 0 10px 0
     text-align right

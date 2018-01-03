@@ -287,7 +287,6 @@ export default {
 </script>
 <style lang="stylus">
 #user-wrapper
-  background-color #fff
   padding 20px 10px
   display flex
   .divider

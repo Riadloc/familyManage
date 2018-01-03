@@ -202,6 +202,7 @@ export default {
 <style lang="stylus">
 #config
   background #fff
+  padding 20px
   input
     width 370px
 </style>

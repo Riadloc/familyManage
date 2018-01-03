@@ -6,7 +6,7 @@
         <li class="tab"><a href="#signup">注册</a></li>
       </ul>
       <form id="signin" ref="signin">
-        <h1>登录月球</h1>
+        <h1>登录</h1>
         <el-input v-model="signin.username" name="userId" placeholder="请输入用户名">
           <label slot="prepend"><span>*</span>用户名：</label>
         </el-input>
@@ -16,7 +16,7 @@
         <el-button type="primary" @click="signIn" :loading="signin.loading">登录</el-button>
       </form>
       <form id="signup" style="display: none" ref="signup">
-        <h1>户籍登记</h1>
+        <h1>注册</h1>
         <el-input v-model="signup.username" name="userId" placeholder="请输入用户名">
           <label slot="prepend"><span>*</span>用户名：</label>
         </el-input>

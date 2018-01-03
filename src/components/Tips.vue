@@ -75,9 +75,8 @@ export default {
 </script>
 <style lang="stylus">
 #tips
-  background #fff
   .tips-list
-    min-height 80vh
+    min-height 90%
     &>li
       padding 18px 24px
       a
