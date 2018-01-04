@@ -2,7 +2,7 @@
   <div id="bill">
     <div class="bill-topnav">
       <el-button type="primary" size="medium" @click="dialogVisible = true">记一笔</el-button>
-      <i class="el-icon-menu menu-icon" @click="updatePageVisible"></i>
+      <i class="el-icon-menu menu-icon" :class="{'menu-icon-active': !pageVisble}" @click="updatePageVisible"></i>
     </div>
     <div class="bi-content" v-show="pageVisble">
       <div class="bill-row">
@@ -343,8 +343,10 @@ export default {
     text-align right
     .menu-icon
       font-size: 20px
-      color #424242
+      color #333
       cursor pointer
+    .menu-icon-active
+      color #888
   .bi-content
     .bill-row:nth-child(1)
       display flex
