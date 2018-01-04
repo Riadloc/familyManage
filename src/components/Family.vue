@@ -12,8 +12,8 @@
       <div class="fs-content">
         <template v-if="family.userInfoForms.length">
           <label>
-            <span class="fs-head-name">成员：{{ family.groupId }}</span>
-            <span class="fs-head-member">家庭：{{ family.groupName }}</span>
+            <span class="fs-head-member">家庭组名：{{ family.groupName }}</span>
+            <span class="fs-head-name">成员数：{{ family.userInfoForms.length }}</span>
           </label>
           <el-table :data="family.userInfoForms" border stripe highlight-current-row style="width: 100%">
             <el-table-column prop="userName" label="姓名"></el-table-column>
@@ -434,6 +434,8 @@ export default {
         height 30px
         font-size 12px
         color #666
+        &>span
+          margin 0 10px
   .function-area
     text-align center
     .el-input

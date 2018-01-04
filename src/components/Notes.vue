@@ -236,7 +236,6 @@ export default {
             console.error(e)
             this.$message.error('出错！')
           })
-          this.typeModal = false
       } else {
         this.$http.post(UPDATE_TYPE, qs.stringify(this.typeForm))
           .then((res) => {
@@ -252,6 +251,7 @@ export default {
             this.$message.error('出错！')
           })
       }
+      this.typeModal = false
     },
     addAccount() {
       let formdata = this.activeTab === 'expense' ? this.expenseForm : this.incomeForm

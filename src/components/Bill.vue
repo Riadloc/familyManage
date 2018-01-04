@@ -37,7 +37,7 @@
         </div>
         <div class="bill-statistic">
           <div class="bs-head">
-            <label>本月收支统计图</label>
+            <label>{{ time.currMonth.slice(0,-3) | getCNTime }}收支统计图</label>
             <el-radio-group v-model="bsTab" size="small" class="bs-tab">
               <el-radio-button label="收入"></el-radio-button>
               <el-radio-button label="支出"></el-radio-button>
@@ -49,7 +49,7 @@
       <div class="bill-row">
         <div class="bill-comparison">
           <div class="bc-head">
-            <label>本月收支统计图</label>
+            <label>{{ barYear | getCNTime }}收支月分布图</label>
             <ul class="bc-year-ctrl">
               <li @click="barYear--"><i class="el-icon-caret-left"></i></li>
               <li class="current-year">{{ barYear }}</li>
@@ -61,7 +61,7 @@
       </div>
     </div>
     <BillList v-show="!pageVisble"></BillList>
-    <FundNotes :dialogVisible="dialogVisible" @update:visible="val => dialogVisible = val"></FundNotes>
+    <FundNotes :dialogVisible="dialogVisible" @update:visible="updateNotesVisible"></FundNotes>
   </div>
 </template>
 <script>
@@ -143,8 +143,6 @@ export default {
             type: 'value',
             name: '金额',
             min: 0,
-            max: 250,
-            interval: 50,
             axisLabel: {
               formatter: '{value}'
             }
@@ -169,10 +167,7 @@ export default {
     }
   },
   mounted() {
-    this.getAllTime()
-    this.loadPie('收入')
-    this.loadBar(this.barYear)
-    this.loadList()
+    this.init()
   },
   watch: {
     bsTab(newVal) {
@@ -183,7 +178,12 @@ export default {
     }
   },
   methods: {
-    handleClose() {},
+    init() {
+      this.getAllTime()
+      this.loadPie('收入')
+      this.loadBar(this.barYear)
+      this.loadList()
+    },
     loadList() {
       Promise.all([this.getAccountsByDay(), this.getAccountsByWeek(), this.getAccountsByMonth(), this.getAccountsByYear()])
         .then((res) => {
@@ -216,6 +216,7 @@ export default {
           const data = res.data;
           if (data.code === '200') {
             const accounts = JSON.parse(data.accounts)
+            console.log(accounts)
             const income = accounts.map((item) => item.income)
             const spend = accounts.map((item) => item.spend)
             bar.hideLoading()
@@ -274,7 +275,7 @@ export default {
     },
     clickBar(params) {
       const { dataIndex: month } = params
-      const currMonth = this.barYear + '-' + (month + 1) + '-01'
+      const currMonth = this.barYear + '-' + ('0' + (month + 1)).slice(-2) + '-01'
       const nextMonth = moment(currMonth).add(1, 'M').format('YYYY-MM') + '-01'
       this.time.currMonth = currMonth
       this.time.nextMonth = nextMonth
@@ -313,15 +314,19 @@ export default {
       }
       this.barYear = year - 0
     },
+    updateNotesVisible(val) {
+      this.dialogVisible = val
+      this.init()
+    },
     updatePageVisible() {
       this.pageVisble = !this.pageVisble
     }
   },
   filters: {
-    getCNTime: function(val) {
+    getCNTime(val) {
       if (!val) return
-      const arr = val.split('-')
-      switch (arr.legend) {
+      const arr = String(val).split('-')
+      switch (arr.length) {
         case 1: return arr[0] + '年';
         case 2: return arr[0] + '年' + arr[1] + '月';
         case 3: return arr[0] + '年' + arr[1] + '月' + arr[2] + '日'
