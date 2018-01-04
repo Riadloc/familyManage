@@ -1,5 +1,9 @@
 const BASE_URL = '/api'
 
+/* 登录 */
+const LOGIN = BASE_URL + '/user/login'
+const LOGOUT = BASE_URL + '/user/register'
+
 /* 用户 */
 const USER_INFO = BASE_URL + '/user/getUser'
 const LOGIN_OUT = BASE_URL + '/user/loginout'
@@ -40,6 +44,8 @@ const DELETE_CONFIG = BASE_URL + '/config/deleteConfig'
 const CREATE_CONFIG = BASE_URL + '/config/createConfig'
 
 export {
+  LOGIN,
+  LOGOUT,
   USER_INFO,
   LOGIN_OUT,
   UPDATE_USER,

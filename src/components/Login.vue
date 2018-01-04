@@ -43,6 +43,7 @@
 </template>
 <script>
 import $ from 'jquery';
+import { LOGIN, LOGOUT } from '../config'
 export default {
   name: 'login-field',
   data() {
@@ -74,11 +75,11 @@ export default {
     });
   },
   methods: {
-    signIn() {
+    signIn(data) {
       if (!this.formCheck('IN')) return false
       this.$set(this.signin, 'loading', true)
       const formdata = new FormData(this.$refs.signin)
-      this.$http.post('api/user/login', formdata)
+      this.$http.post(LOGIN, formdata)
         .then((res) => {
           this.$set(this.signin, 'loading', false)
           if (parseInt(res.data.code) === 200) {
@@ -100,13 +101,15 @@ export default {
       this.$set(this.signup, 'loading', true)
       const formdata = new FormData(this.$refs.signup)
       formdata.append('sex', this.signup.gender)
-      this.$http.post('api/user/register', formdata)
+      this.$http.post(LOGOUT, formdata)
         .then((res) => {
           this.$set(this.signup, 'loading', false)
           if (parseInt(res.data.code) === 200) {
             this.$message.success('注册成功！')
-            window.sessionStorage.setItem('user', res.data.user)
-            this.$router.push({name: 'Management'})
+            const data = new FormData()
+            data.append('userId', this.signup.username)
+            data.append('password', this.signup.psw)
+            this.pureLogIn(data)
           } else {
             this.$message.error(res.data.msg)
           }
@@ -115,6 +118,21 @@ export default {
           console.error(e)
           this.$set(this.signup, 'loading', false)
           this.$message.error('出错！')
+        })
+    },
+    pureLogIn(formdata) {
+      this.$http.post(LOGIN, formdata)
+        .then((res) => {
+          if (parseInt(res.data.code) === 200) {
+            window.sessionStorage.setItem('user', res.data.user)
+            this.$router.push({name: 'Management'})
+          } else {
+            this.$message.error(res.data.msg)
+          }
+        })
+        .catch((e) => {
+          console.error(e)
+          this.$message.error('登录失败')
         })
     },
     formCheck(type) {
