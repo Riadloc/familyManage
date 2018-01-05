@@ -2,7 +2,7 @@
   <div id="bill">
     <div class="bill-topnav">
       <el-button type="primary" size="medium" @click="dialogVisible = true">记一笔</el-button>
-      <i class="el-icon-menu menu-icon" @click="updatePageVisible"></i>
+      <i class="el-icon-menu menu-icon" :class="{'menu-icon-active': !pageVisble}" @click="updatePageVisible"></i>
     </div>
     <div class="bi-content" v-show="pageVisble">
       <div class="bill-row">
@@ -37,7 +37,7 @@
         </div>
         <div class="bill-statistic">
           <div class="bs-head">
-            <label>本月收支统计图</label>
+            <label>{{ time.currMonth.slice(0,-3) | getCNTime }}收支统计图</label>
             <el-radio-group v-model="bsTab" size="small" class="bs-tab">
               <el-radio-button label="收入"></el-radio-button>
               <el-radio-button label="支出"></el-radio-button>
@@ -49,19 +49,19 @@
       <div class="bill-row">
         <div class="bill-comparison">
           <div class="bc-head">
-            <label>本月收支统计图</label>
+            <label>{{ barYear | getCNTime }}收支月分布图</label>
             <ul class="bc-year-ctrl">
               <li @click="barYear--"><i class="el-icon-caret-left"></i></li>
               <li class="current-year">{{ barYear }}</li>
               <li @click="barYear++"><i class="el-icon-caret-right"></i></li>
             </ul>
           </div>
-          <chart :options="bar" ref="bar"></chart>
+          <chart :options="bar" ref="bar" @click="clickBar"></chart>
         </div>
       </div>
     </div>
     <BillList v-show="!pageVisble"></BillList>
-    <FundNotes :dialogVisible="dialogVisible" @update:visible="val => dialogVisible = val"></FundNotes>
+    <FundNotes :dialogVisible="dialogVisible" @update:visible="updateNotesVisible"></FundNotes>
   </div>
 </template>
 <script>
@@ -73,6 +73,7 @@ import 'echarts/lib/chart/pie'
 import 'echarts/lib/chart/bar'
 import 'echarts/lib/component/tooltip'
 import 'echarts/lib/component/legend'
+import { BASIC_ACCOUNT, MONTH_ACCOUNT, RANGE_ACCOUNT } from '../config'
 export default {
   name: 'bill',
   components: { 'chart': ECharts, FundNotes: Notes, BillList },
@@ -81,7 +82,7 @@ export default {
       bsTab: '收入',
       dialogVisible: false,
       pageVisble: true,
-      barYear: 2017,
+      barYear: 2018,
       list: {
         day: {income: 0, spend: 0},
         week: {income: 0, spend: 0},
@@ -125,14 +126,6 @@ export default {
             }
           }
         },
-        toolbox: {
-          feature: {
-              dataView: {show: true, readOnly: false},
-              magicType: {show: true, type: ['line', 'bar']},
-              restore: {show: true},
-              saveAsImage: {show: true}
-          }
-        },
         legend: {
             data: ['收入', '支出']
         },
@@ -148,10 +141,8 @@ export default {
         yAxis: [
           {
             type: 'value',
-            name: '水量',
+            name: '金额',
             min: 0,
-            max: 250,
-            interval: 50,
             axisLabel: {
               formatter: '{value}'
             }
@@ -176,10 +167,7 @@ export default {
     }
   },
   mounted() {
-    this.getAllTime()
-    this.loadPie('收入')
-    this.loadBar(2017)
-    this.loadList()
+    this.init()
   },
   watch: {
     bsTab(newVal) {
@@ -190,7 +178,12 @@ export default {
     }
   },
   methods: {
-    handleClose() {},
+    init() {
+      this.getAllTime()
+      this.loadPie('收入')
+      this.loadBar(this.barYear)
+      this.loadList()
+    },
     loadList() {
       Promise.all([this.getAccountsByDay(), this.getAccountsByWeek(), this.getAccountsByMonth(), this.getAccountsByYear()])
         .then((res) => {
@@ -218,11 +211,12 @@ export default {
         color: '#4ea397',
         maskColor: 'rgba(255, 255, 255, 0.4)'
       })
-      this.$http.get('/api/account/getMonthAccounts', { params: {year: val} })
+      this.$http.get(MONTH_ACCOUNT, { params: {year: val} })
         .then((res) => {
           const data = res.data;
           if (data.code === '200') {
             const accounts = JSON.parse(data.accounts)
+            console.log(accounts)
             const income = accounts.map((item) => item.income)
             const spend = accounts.map((item) => item.spend)
             bar.hideLoading()
@@ -250,7 +244,8 @@ export default {
         maskColor: 'rgba(255, 255, 255, 0.4)'
       })
       const key = val === '收入' ? 'income' : 'spending'
-      this.getAccountsByMonth()
+      const { currMonth, nextMonth } = this.time
+      this.$http.get(BASIC_ACCOUNT, {params: {fromDate: currMonth, toDate: nextMonth}})
         .then((res) => {
           const data = res.data;
           if (data.code === '200') {
@@ -278,6 +273,14 @@ export default {
           this.$message.error('请检查网络')
         })
     },
+    clickBar(params) {
+      const { dataIndex: month } = params
+      const currMonth = this.barYear + '-' + ('0' + (month + 1)).slice(-2) + '-01'
+      const nextMonth = moment(currMonth).add(1, 'M').format('YYYY-MM') + '-01'
+      this.time.currMonth = currMonth
+      this.time.nextMonth = nextMonth
+      this.loadPie(this.bsTab)
+    },
     getAccountsByDay() {
       const { day } = this.time
       return this.getAccounts({fromDate: day, toDate: day})
@@ -295,7 +298,7 @@ export default {
       return this.getAccounts({fromDate: year+'-01-01', toDate: (year+1)+'-01-01'})
     },
     getAccounts(date) {
-      return this.$http.get('/api/account/getByConditions', { params: date })
+      return this.$http.get(RANGE_ACCOUNT, { params: date })
     },
     getAllTime() {
       let date = moment().locale('zh-CN')
@@ -309,16 +312,21 @@ export default {
       this.time = {
         day, currWeek, nextWeek, currMonth, nextMonth, year
       }
+      this.barYear = year - 0
+    },
+    updateNotesVisible(val) {
+      this.dialogVisible = val
+      this.init()
     },
     updatePageVisible() {
       this.pageVisble = !this.pageVisble
     }
   },
   filters: {
-    getCNTime: function(val) {
+    getCNTime(val) {
       if (!val) return
-      const arr = val.split('-')
-      switch (arr.legend) {
+      const arr = String(val).split('-')
+      switch (arr.length) {
         case 1: return arr[0] + '年';
         case 2: return arr[0] + '年' + arr[1] + '月';
         case 3: return arr[0] + '年' + arr[1] + '月' + arr[2] + '日'
@@ -329,13 +337,16 @@ export default {
 </script>
 <style lang="stylus">
 #bill
+  background inherit!important
   .bill-topnav
     margin 0 0 10px 0
     text-align right
     .menu-icon
       font-size: 20px
-      color #424242
+      color #333
       cursor pointer
+    .menu-icon-active
+      color #888
   .bi-content
     .bill-row:nth-child(1)
       display flex
@@ -344,7 +355,7 @@ export default {
       display inline-block
       border 1px solid #ededed
       padding 0 4px
-      background-color #F8F8F8
+      background-color #fff
       vertical-align top
       box-shadow 0 0 8px 2px #999
       h2
@@ -371,7 +382,7 @@ export default {
                 color #819539
     .bill-statistic
       display inline-block
-      background-color #F8F8F8
+      background-color #fff
       box-shadow 0 0 8px 2px #999
       flex 1
       padding 0 4px
@@ -392,7 +403,7 @@ export default {
         width 100%
         height 240px
     .bill-comparison
-      background-color #F8F8F8
+      background-color #fff
       box-shadow 0 0 8px 2px #999
       padding 0 4px
       .bc-head

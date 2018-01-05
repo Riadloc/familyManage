@@ -14,7 +14,7 @@
             <el-form-item label="支出项目">
               <el-cascader
                 expand-trigger="hover"
-                :options="options"
+                :options="spendOpts"
                 v-model="expenseForm.type">
               </el-cascader>
               <el-dropdown @command="handleCommand">
@@ -48,7 +48,7 @@
             <el-form-item label="收入项目">
               <el-cascader
                 expand-trigger="hover"
-                :options="options"
+                :options="incomeOpts"
                 v-model="incomeForm.type">
               </el-cascader>
               <el-button icon="el-icon-edit" @click="typeModal = true"></el-button>
@@ -73,9 +73,9 @@
         @close="typeModal = false"
         width="400px"
         append-to-body>
-        <el-form :model="typeForm" label-width="80px">
-          <el-form-item label="收入项目">
-            <el-select v-model="typeForm.toplevel" placeholder="请选择">
+        <el-form :model="typeForm" label-width="80px" ref="typeForm">
+          <el-form-item label="属于分类" prop="topLevel">
+            <el-select v-model="typeForm.topLevel" placeholder="请选择">
               <el-option
                 v-for="item in topOptions"
                 :key="item.value"
@@ -84,12 +84,12 @@
               </el-option>
             </el-select>
           </el-form-item>
-          <el-form-item label="类型名称">
+          <el-form-item label="类型名称" prop="typeName">
             <el-input v-model="typeForm.typeName"></el-input>
           </el-form-item>
           <el-form-item>
-            <el-button type="primary" @click="addType">提交</el-button>
-            <el-button @click="typeModal = false">取消</el-button>
+            <el-button type="primary" @click="updateType">提交</el-button>
+            <el-button @click="resetForm('typeForm')">取消</el-button>
           </el-form-item>
         </el-form>
       </el-dialog>
@@ -102,13 +102,14 @@
 </template>
 <script>
 import qs from 'qs'
-import { DELETE_TYPE } from '../config'
+import { DELETE_TYPE, ACCOUNT_TYPE, CREATE_TYPE, UPDATE_TYPE } from '../config'
 export default {
   name: 'fund-notes',
   props: ['dialogVisible'],
   data() {
     return {
-      options: [],
+      incomeOpts: [],
+      spendOpts: [],
       topOptions: [],
       incomeForm: {
         income: null,
@@ -123,8 +124,12 @@ export default {
         description: ''
       },
       typeModal: false,
+      typeModalStatus: '',
       activeTab: 'expense',
-      typeForm: {}
+      typeForm: {
+        topLevel: '',
+        typeName: ''
+      }
     }
   },
   mounted() {
@@ -132,21 +137,26 @@ export default {
   },
   methods: {
     getIncomeType() {
-      this.$http.get('/api/accountType/getAccountType')
+      this.$http.get(ACCOUNT_TYPE)
         .then((res) => {
           const data = JSON.parse(res.data.types)
           const toltalTypes = data.types
-          const topTypes = data.topTypes
-          this.options = topTypes.map((item, index) => {
-            return {
+          const types = data.topTypes
+          types.forEach((item, index) => {
+            const opt = {
               value: item.toplevel,
               label: item.topname,
               children: toltalTypes.filter((it) => it.topName === item.topname).map(({id, typeName}) => {
                 return { value: id, label: typeName }
               })
             }
+            if (item.toplevel - 0 > 19) {
+              this.incomeOpts.push(opt)
+            } else {
+              this.spendOpts.push(opt)
+            }
           })
-          this.topOptions = topTypes.map((item, index) => {
+          this.topOptions = types.map(item => {
             return {
               value: item.toplevel,
               label: item.topname
@@ -160,56 +170,99 @@ export default {
     handleCommand(command) {
       if (command === 'add') {
         this.typeModal = true
+        this.typeModalStatus = 'create'
       } else if (command === 'update') {
-        const type = this.activeTab === 'expense' ? this.expenseForm.type : this.incomeForm.type        
+        const type = this.activeTab === 'expense' ? this.expenseForm.type : this.incomeForm.type
         if (type.length) {
-          const item = this.options.find(item => item.value === type[0])
-          this.typeForm = {
-            toplevel: type[0],
-            typeName: item.children.find(item => item.value === type[1]).label
-          }
+          const topLevel = type[0]
+          const item = this.options.find(it => it.value === topLevel)
+          const typeName = item.children.find(it => it.value === type[1]).label
+          this.typeForm = { topLevel, typeName, typeId: type[1] }
           this.typeModal = true
+          this.typeModalStatus = 'update'
         } else {
-          this.$message.error('请先选择修改分类')
+          this.$message.info('请先选择要修改的类别')
         }
       } else {
-        this.$confirm('确认删除该分类?', '提示', {
-          confirmButtonText: '确定',
-          cancelButtonText: '取消',
-          type: 'warning'
-        }).then(() => {
-          this.$http.post(DELETE_TYPE, qs.stringify({ id: row.id }))
-            .then((res) => {
-              const data = res.data
-              if (data.code === '200') {
-                this.$message.success('删除成功！')
-              } else {
-                this.$message.error(data.msg)
-              }
+        const form = this.activeTab === 'expense' ? this.expenseForm : this.incomeForm
+        const type = form.type
+        if (type.length) {
+          this.$confirm('确认删除该分类?', '提示', {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning'
+          }).then(() => {
+              this.$http.post(DELETE_TYPE, qs.stringify({typeId: type[1]}))
+                .then((res) => {
+                  const data = res.data
+                  if (data.code === '200') {
+                    const topIndex = this.options.findIndex(item => item.value === type[0])
+                    const index = this.options[topIndex].children.findIndex(item => item.value === type[1])
+                    this.options[topIndex].children.splice(index, 1)
+                    this.$set(form, 'type', [])
+                    this.$message.success('删除成功！')
+                  } else {
+                    this.$message.error(data.msg)
+                  }
+                })
+                .catch((e) => {
+                  console.error(e)
+                  this.$message.error('出错！')
+                })
+            }).catch(() => {
+              this.$message.info('已取消')
             })
-            .catch((e) => {
-              console.error(e)
-              this.$message.error('出错！')
-            })
-        }).catch(() => {
-          this.$message.info('已取消')
-        });
+        } else {
+          this.$message.info('请先选择要删除的类别')
+        }
       }
     },
-    addType() {
+    updateType() {
+      if (this.typeModalStatus === 'create') {
+        const { topLevel, typeName } = this.typeForm
+        this.$http.post(CREATE_TYPE, qs.stringify({ topLevel, typeName }))
+          .then((res) => {
+            const data = res.data
+            if (data.code === '200') {
+              const type = JSON.parse(data.type)
+              const index = this.options.findIndex(item => item.value === topLevel)
+              this.options[index].children.push({ value: type.id, label: type.typeName })
+              this.$message.success('新建成功!')
+            } else {
+              this.$message.error(data.msg)
+            }
+          })
+          .catch((e) => {
+            console.error(e)
+            this.$message.error('出错！')
+          })
+      } else {
+        this.$http.post(UPDATE_TYPE, qs.stringify(this.typeForm))
+          .then((res) => {
+            const data = res.data
+            if (data.code === '200') {
+              this.$message.success('修改成功!')
+            } else {
+              this.$message.error(data.msg)
+            }
+          })
+          .catch((e) => {
+            console.error(e)
+            this.$message.error('出错！')
+          })
+      }
+      this.typeModal = false
     },
     addAccount() {
       let formdata = this.activeTab === 'expense' ? this.expenseForm : this.incomeForm
       const date = new Date(formdata.gmtCreate);
       const gmtCreate = date.getFullYear() + '-' + (date.getMonth() + 1) + '-' + date.getDate()
       formdata = Object.assign({}, formdata, {type: formdata.type.slice(-1)[0], gmtCreate})
-      console.log(formdata)
       this.$http.post('/api/account/addAccount', qs.stringify(formdata))
         .then((res) => {
           const data = res.data;
           this.closeDialog()
           if (data.code === '200') {
-            console.log(data.msg)
             this.$message.success('新增账单成功！')
           } else {
             this.$message.error(data.msg);
@@ -219,6 +272,10 @@ export default {
           console.error(e)
           this.$message.error('新增账单出错！')
         })
+    },
+    resetForm(formName) {
+      this.typeModal = false
+      this.$refs[formName].resetFields()
     },
     closeDialog() {
       this.$emit('update:visible', false)
