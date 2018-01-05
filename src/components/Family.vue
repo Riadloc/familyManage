@@ -56,7 +56,7 @@
               </ul>
               <el-table
                 :data="memberData"
-                v-if="memberDetail.allowType1"
+                v-if="memberData.length"
                 stripe
                 style="width: 100%">
                 <el-table-column prop="month" label="月份"></el-table-column>
