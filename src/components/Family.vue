@@ -368,7 +368,7 @@ export default {
           const data = res.data
           if (data.code === '200') {
             const userConfig = JSON.parse(data.userConfig)
-            const { allowType1: type1, allowType2: type2, id: toUser } = userConfig
+            const { allowType1: type1, allowType2: type2 } = userConfig
             this.privacyForm = {type1, type2, toUser}
           } else {
             this.$message.error(data.msg)
