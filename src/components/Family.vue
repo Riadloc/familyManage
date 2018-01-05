@@ -63,7 +63,7 @@
                 <el-table-column prop="spend" label="支出"></el-table-column>
                 <el-table-column prop="income" label="收入"></el-table-column>
                 <el-table-column prop="balance" label="资产"></el-table-column>
-                <el-table-column fixed="right" label="操作" width="140" v-if="memberDetail.allowType2">
+                <el-table-column fixed="right" label="操作" width="140">
                   <template slot-scope="scope">
                     <el-button type="primary" size="mini" @click="memberAccountDetail(scope.row)">详情</el-button>
                   </template>
@@ -382,28 +382,14 @@ export default {
     handleMemSel(row) {
       const { id: toUser } = row
       this.memberDetail = row
-      let userConfig = {}
-      this.$http.get(MEMBER_CONFIG, { params: {toUser} })
+      this.memberVisible = true
+      this.$http.get(MEMBER_MONTH_ACCOUNT, {params: { userId: toUser, year: this.year }})
         .then((res) => {
           const data = res.data
           if (data.code === '200') {
-            this.memberVisible = true
-            userConfig = JSON.parse(data.userConfig)
-            if (userConfig.allowType1 === 1) {
-              this.$set(this.memberDetail, 'allowType1', !!userConfig.allowType1)
-              this.$http.get(MEMBER_MONTH_ACCOUNT, {params: { userId: toUser, year: this.year }})
-                .then((res) => {
-                  const data = res.data
-                  if (data.code === '200') {
-                    const accounts = JSON.parse(data.accounts)
-                    this.$set(this.memberDetail, 'allowType2', !!userConfig.allowType2)
-                    if (accounts.length) {
-                      this.memberData = accounts.filter((item) => item.balance - 0)
-                    }
-                  } else {
-                    this.$message.error(data.msg)
-                  }
-                })
+            const accounts = JSON.parse(data.accounts)
+            if (accounts.length) {
+              this.memberData = accounts.filter((item) => item.balance - 0)
             }
           } else {
             this.$message.error(data.msg)
