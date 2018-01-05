@@ -56,7 +56,7 @@
               </ul>
               <el-table
                 :data="memberData"
-                v-if="memberData.length"
+                v-if="memberData.length && !memberDetail.allow"
                 stripe
                 style="width: 100%">
                 <el-table-column prop="month" label="月份"></el-table-column>
@@ -69,6 +69,7 @@
                   </template>
                 </el-table-column>
               </el-table>
+              <p v-else-if="!memberDetail.allow">无账单信息！</p>
               <p v-else>用户已隐藏账单查看！</p>
               <el-dialog
                 title="月账单详情"
@@ -392,6 +393,7 @@ export default {
               this.memberData = accounts.filter((item) => item.balance - 0)
             }
           } else {
+            this.$set(this.memberDetail, 'allow', false)
             this.$message.error(data.msg)
           }
         })
@@ -413,6 +415,7 @@ export default {
           if (data.code === '200') {
             this.accountDetail = JSON.parse(data.accounts)
           } else {
+            this.accountModal = false
             this.$message.error(data.msg);
           }
           this.loading = false
