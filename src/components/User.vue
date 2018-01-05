@@ -8,7 +8,6 @@
         <div class="ui-text">
           <div class="ui-text-head clearfix">
             <h2 class="ui-text-nickname">{{ user.userName }}</h2>
-            <el-button class="ui-text-edit" type="primary" @click="privacyStatus = true" plain>隐私设置</el-button>
             <el-button class="ui-text-edit" type="primary" @click="infoStatus = true" plain>编辑资料</el-button>
           </div>
           <ul class="ui-text-content">
@@ -96,39 +95,11 @@
           </el-form-item>
         </el-form>
       </div>
-      <div class="user-privacy-update" v-if="privacyStatus">
-        <el-form :model="privacyForm" label-width="180px">
-          <el-form-item label="开放查看月账单">
-            <el-switch
-              v-model="privacyForm.type1"
-              :active-value="1"
-              :inactive-value="0"
-              active-text="开放"
-              inactive-text="隐藏">
-            </el-switch>
-          </el-form-item>
-          <el-form-item label="开放查看月账单详细">
-            <el-switch
-              style="display: block"
-              v-model="privacyForm.type2"
-              :active-value="1"
-              :inactive-value="0"
-              active-text="开放"
-              inactive-text="隐藏">
-            </el-switch>
-          </el-form-item>
-          <el-form-item style="text-align: right">
-            <el-button type="primary" @click="updatePrivacy">提交</el-button>
-            <el-button @click="privacyStatus = false">取消</el-button>
-          </el-form-item>
-        </el-form>
-      </div>
     </el-dialog>
   </div>
 </template>
 <script>
-import qs from 'qs';
-import { UPDATE_USER, TIPS_LIST, MEMBER_CONFIG, UPDATE_PRIVACY, USER_INFO } from '../config'
+import { UPDATE_USER, TIPS_LIST, USER_INFO } from '../config'
 export default {
   name: 'user',
   data() {
@@ -146,18 +117,13 @@ export default {
         password: '',
         filePhoto: ''
       },
-      privacyForm: {
-        type1: 0,
-        type2: 0
-      },
       articles: [],
-      infoStatus: false,
-      privacyStatus: false
+      infoStatus: false
     }
   },
   computed: {
     dialogVisible() {
-      return this.infoStatus || this.privacyStatus
+      return this.infoStatus
     }
   },
   mounted() {
@@ -194,7 +160,6 @@ export default {
             this.imageUrl = photo
             this.updateForm = Object.assign(this.updateForm, {userName, sex, mobile, password, filePhoto: photo})
             this.user = user
-            this.getUserConfig()
           } else {
             this.$message.error(data.msg)
             this.$router.push('/')
@@ -228,39 +193,6 @@ export default {
           this.$message.error('出错！')
         })
       this.infoStatus = false
-    },
-    updatePrivacy() {
-      this.$http.post(UPDATE_PRIVACY, qs.stringify(this.privacyForm))
-        .then((res) => {
-          const data = res.data
-          if (data.code === '200') {
-            this.$message.success('修改成功！')
-          } else {
-            this.$message.error(data.msg)
-          }
-        })
-        .catch((e) => {
-          console.error(e)
-          this.$message.error('出错！')
-        })
-      this.privacyStatus = false
-    },
-    getUserConfig() {
-      this.$http.get(MEMBER_CONFIG, { params: {userId: this.user.id} })
-        .then((res) => {
-          const data = res.data
-          if (data.code === '200') {
-            const userConfig = JSON.parse(data.userConfig)
-            const { allowType1: type1, allowType2: type2 } = userConfig
-            this.privacyForm = {type1, type2}
-          } else {
-            this.$message.error(data.msg)
-          }
-        })
-        .catch((e) => {
-          console.error(e)
-          this.$message.error('出错！')
-        })
     },
     getArticleList() {
       this.$http.get(TIPS_LIST, { params: { pageNum: 1 } })

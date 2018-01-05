@@ -23,13 +23,15 @@
             <el-table-column prop="allSpending" label="支出"></el-table-column>
             <el-table-column prop="balance" label="状态"></el-table-column>
             <el-table-column
+              fixed="right"
               label="操作"
-              width="200">
+              width="260">
               <template slot-scope="scope">
-                <el-button @click="handleMemSel(scope.row)" type="primary" size="small" v-if="scope.row.id !== userId">查看</el-button>
-                <template v-if="!scope.row.isManager&&userId === family.managerId">
-                  <el-button @click="kikMember(scope)" type="primary" size="small">移除</el-button>
+                <template v-if="scope.row.id !== userId">
+                  <el-button @click="handleMemSel(scope.row)" type="primary" size="small">查看</el-button>
+                  <el-button type="primary" @click="beforeUpdatePrivacy(scope.row)" size="small">设置</el-button>
                 </template>
+                <el-button v-if="!scope.row.isManager&&userId === family.managerId" @click="kikMember(scope)" type="primary" size="small">移除</el-button>
                 <span v-if="scope.row.isManager">管理员</span>
               </template>
             </el-table-column>
@@ -111,8 +113,7 @@
               <el-table :data="searchRes" border stripe style="width: 100%">
                 <el-table-column prop="groupId" label="ID"></el-table-column>
                 <el-table-column prop="groupName" label="名字"></el-table-column>
-                <el-table-column prop="groupManager" label="创建者"></el-table-column>
-                <el-table-column prop="groupMembers" label="人数"></el-table-column>
+                <el-table-column prop="groupManager" label="创建者ID"></el-table-column>
                 <el-table-column prop="allIncome" label="总收入"></el-table-column>
                 <el-table-column prop="allSpending" label="总支出"></el-table-column>
                 <el-table-column prop="balance" label="状态"></el-table-column>
@@ -134,6 +135,29 @@
             <el-input v-model="familyName" placeholder="请输入创建家庭名字">
             </el-input>
           </div>
+          <div class="user-privacy-update" v-if="privacyStatus">
+            <el-form :model="privacyForm" label-width="180px">
+              <el-form-item label="开放查看月账单">
+                <el-switch
+                  v-model="privacyForm.type1"
+                  :active-value="1"
+                  :inactive-value="0"
+                  active-text="开放"
+                  inactive-text="隐藏">
+                </el-switch>
+              </el-form-item>
+              <el-form-item label="开放查看月账单详细">
+                <el-switch
+                  style="display: block"
+                  v-model="privacyForm.type2"
+                  :active-value="1"
+                  :inactive-value="0"
+                  active-text="开放"
+                  inactive-text="隐藏">
+                </el-switch>
+              </el-form-item>
+            </el-form>
+          </div>
         </div>
         <span slot="footer" class="dialog-footer">
           <el-button @click="closeModal">取 消</el-button>
@@ -146,7 +170,7 @@
 <script>
 import qs from 'qs'
 import moment from 'moment'
-import { JOIN_GROUP, GROUP_INFO, UPDATE_GROUP, REMOVE_MEMBER, MEMBER_CONFIG, MEMBER_MONTH_ACCOUNT, MEMBER_ACCOUNT_DETAIL } from '../config'
+import { JOIN_GROUP, GROUP_INFO, UPDATE_GROUP, REMOVE_MEMBER, MEMBER_CONFIG, MEMBER_MONTH_ACCOUNT, MEMBER_ACCOUNT_DETAIL, UPDATE_PRIVACY } from '../config'
 export default {
   name: 'family',
   data() {
@@ -155,6 +179,7 @@ export default {
       groupInfo: '',
       familyName: '',
       memberVisible: false,
+      privacyStatus: false,
       accountModal: false,
       loading: false,
       searchRes: [],
@@ -168,6 +193,10 @@ export default {
       year: 2018,
       memberData: [],
       accountDetail: [],
+      privacyForm: {
+        type1: 0,
+        type2: 0
+      },
       family: {
         groupId: '',
         groupName: '',
@@ -177,7 +206,7 @@ export default {
   },
   computed: {
     dialogVisible() {
-      return (this.search_status || this.create_status || this.update_status)
+      return (this.search_status || this.create_status || this.update_status || this.privacyStatus)
     }
   },
   watch: {
@@ -194,7 +223,6 @@ export default {
     const user = JSON.parse(window.sessionStorage.getItem('user'))
     if (!user) this.$router.push('/')
     this.userId = user.id
-    console.log(user.id)
     if (user.groupId === 0) {
       this.$message.info('未加入家庭组')
       this.$refs.btns.style.display = 'block'
@@ -211,7 +239,6 @@ export default {
           if (data.code === '200') {
             const { groupInfoForm } = data
             this.family = JSON.parse(groupInfoForm)
-            console.log(this.family)
             this.$refs.btns.style.display = 'block'
           } else {
             this.$message.error(data.msg);
@@ -227,6 +254,7 @@ export default {
       this.create_status = false
       this.search_status = false
       this.update_status = false
+      this.privacyStatus = false
     },
     updateFa() {
       this.familyName = this.family.groupName
@@ -314,11 +342,48 @@ export default {
           this.$message.error('出错！')
         })
     },
+    beforeUpdatePrivacy(row) {
+      this.getUserConfig(row.id)
+      this.privacyStatus = true
+    },
+    updatePrivacy() {
+      this.$http.post(UPDATE_PRIVACY, qs.stringify(this.privacyForm))
+        .then((res) => {
+          const data = res.data
+          if (data.code === '200') {
+            this.$message.success('修改成功！')
+          } else {
+            this.$message.error(data.msg)
+          }
+        })
+        .catch((e) => {
+          console.error(e)
+          this.$message.error('出错！')
+        })
+      this.privacyStatus = false
+    },
+    getUserConfig(toUser) {
+      this.$http.get(MEMBER_CONFIG, { params: {toUser} })
+        .then((res) => {
+          const data = res.data
+          if (data.code === '200') {
+            const userConfig = JSON.parse(data.userConfig)
+            const { allowType1: type1, allowType2: type2, id: toUser } = userConfig
+            this.privacyForm = {type1, type2, toUser}
+          } else {
+            this.$message.error(data.msg)
+          }
+        })
+        .catch((e) => {
+          console.error(e)
+          this.$message.error('出错！')
+        })
+    },
     handleMemSel(row) {
-      const { id: userId } = row
+      const { id: toUser } = row
       this.memberDetail = row
       let userConfig = {}
-      this.$http.get(MEMBER_CONFIG, { params: {userId} })
+      this.$http.get(MEMBER_CONFIG, { params: {toUser} })
         .then((res) => {
           const data = res.data
           if (data.code === '200') {
@@ -326,7 +391,7 @@ export default {
             userConfig = JSON.parse(data.userConfig)
             if (userConfig.allowType1 === 1) {
               this.$set(this.memberDetail, 'allowType1', !!userConfig.allowType1)
-              this.$http.get(MEMBER_MONTH_ACCOUNT, {params: { userId, year: this.year }})
+              this.$http.get(MEMBER_MONTH_ACCOUNT, {params: { userId: toUser, year: this.year }})
                 .then((res) => {
                   const data = res.data
                   if (data.code === '200') {
@@ -378,7 +443,6 @@ export default {
           .then((res) => {
             const data = res.data;
             if (data.code === '200') {
-              console.log(data.msg)
               const user = JSON.parse(window.sessionStorage.getItem('user'))
               user.groupId = data.groupId
               window.sessionStorage.setItem('user', JSON.stringify(user))
@@ -408,6 +472,8 @@ export default {
             console.error(e)
             this.$message.error('创建家庭组失败！')
           })
+      } else if (this.privacyStatus) {
+        this.updatePrivacy()
       }
       this.closeModal()
     }

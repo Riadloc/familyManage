@@ -216,7 +216,6 @@ export default {
           const data = res.data;
           if (data.code === '200') {
             const accounts = JSON.parse(data.accounts)
-            console.log(accounts)
             const income = accounts.map((item) => item.income)
             const spend = accounts.map((item) => item.spend)
             bar.hideLoading()
