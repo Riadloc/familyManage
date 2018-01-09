@@ -151,6 +151,7 @@ export default {
             const data = res.data
             if (data.code === '200') {
               this.$message.success('修改成功!')
+              this.getAllConfigs()
             } else {
               this.$message.error(data.msg)
             }
@@ -168,6 +169,7 @@ export default {
             const data = res.data
             if (data.code === '200') {
               this.$message.success('新增成功!')
+              this.getAllConfigs()
             } else {
               this.$message.error(data.msg)
             }

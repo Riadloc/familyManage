@@ -177,6 +177,7 @@ export default {
   data() {
     return {
       userId: null,
+      user: {},
       groupInfo: '',
       familyName: '',
       memberVisible: false,
@@ -224,6 +225,7 @@ export default {
     const user = JSON.parse(window.sessionStorage.getItem('user'))
     if (!user) this.$router.push('/')
     this.userId = user.id
+    this.user = user
     if (user.groupId === 0) {
       this.$message.info('未加入家庭组')
       this.$refs.btns.style.display = 'block'
@@ -304,7 +306,8 @@ export default {
         })
     },
     quitFa() {
-      this.$confirm('此操作将永久解散该家庭组, 是否继续?', '提示', {
+      const text = this.user.isManager ? '此操作将永久解散该家庭组, 是否继续?' : '确认退出该家庭组?'
+      this.$confirm(text, '提示', {
           confirmButtonText: '确定',
           cancelButtonText: '取消',
           type: 'warning'

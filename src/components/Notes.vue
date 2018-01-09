@@ -51,7 +51,14 @@
                 :options="incomeOpts"
                 v-model="incomeForm.type">
               </el-cascader>
-              <el-button icon="el-icon-edit" @click="typeModal = true"></el-button>
+              <el-dropdown @command="handleCommand">
+                <el-button icon="el-icon-edit"></el-button>
+                <el-dropdown-menu slot="dropdown">
+                  <el-dropdown-item command="add" style="color: #409EFF">增加</el-dropdown-item>
+                  <el-dropdown-item command="update" style="color: #E6A23C">修改</el-dropdown-item>
+                  <el-dropdown-item command="drop" style="color: #F56C6C">删除</el-dropdown-item>
+                </el-dropdown-menu>
+              </el-dropdown>
             </el-form-item>
             <el-form-item label="日期">
               <el-date-picker
@@ -173,9 +180,10 @@ export default {
         this.typeModalStatus = 'create'
       } else if (command === 'update') {
         const type = this.activeTab === 'expense' ? this.expenseForm.type : this.incomeForm.type
+        const options = this.activeTab === 'expense' ? this.spendOpts : this.incomeOpts
         if (type.length) {
           const topLevel = type[0]
-          const item = this.options.find(it => it.value === topLevel)
+          const item = options.find(it => it.value === topLevel)
           const typeName = item.children.find(it => it.value === type[1]).label
           this.typeForm = { topLevel, typeName, typeId: type[1] }
           this.typeModal = true
@@ -196,9 +204,10 @@ export default {
                 .then((res) => {
                   const data = res.data
                   if (data.code === '200') {
-                    const topIndex = this.options.findIndex(item => item.value === type[0])
-                    const index = this.options[topIndex].children.findIndex(item => item.value === type[1])
-                    this.options[topIndex].children.splice(index, 1)
+                    const options = this.activeTab === 'expense' ? this.spendOpts : this.incomeOpts
+                    const topIndex = options.findIndex(item => item.value === type[0])
+                    const index = options[topIndex].children.findIndex(item => item.value === type[1])
+                    options[topIndex].children.splice(index, 1)
                     this.$set(form, 'type', [])
                     this.$message.success('删除成功！')
                   } else {
@@ -225,8 +234,9 @@ export default {
             const data = res.data
             if (data.code === '200') {
               const type = JSON.parse(data.type)
-              const index = this.options.findIndex(item => item.value === topLevel)
-              this.options[index].children.push({ value: type.id, label: type.typeName })
+              const options = topLevel - 0 > 19 ? this.incomeOpts : this.spendOpts
+              const index = options.findIndex(item => item.value === topLevel)
+              options[index].children.push({ value: type.id, label: type.typeName })
               this.$message.success('新建成功!')
             } else {
               this.$message.error(data.msg)
@@ -242,6 +252,13 @@ export default {
             const data = res.data
             if (data.code === '200') {
               this.$message.success('修改成功!')
+              const { topLevel, typeId, typeName } = this.typeForm
+              const options = topLevel - 0 > 19 ? this.incomeOpts : this.spendOpts
+              const topIndex = options.findIndex(item => item.value === topLevel)
+              const index = options[topIndex].children.findIndex(item => item.value === typeId)
+              options[topIndex].children[index] = { value: typeId, label: typeName }
+              this.$set(this.incomeForm, 'type', [])
+              this.$set(this.expenseForm, 'type', [])
             } else {
               this.$message.error(data.msg)
             }

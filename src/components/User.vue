@@ -160,6 +160,7 @@ export default {
             this.imageUrl = photo
             this.updateForm = Object.assign(this.updateForm, {userName, sex, mobile, password, filePhoto: photo})
             this.user = user
+            console.log(user)
           } else {
             this.$message.error(data.msg)
             this.$router.push('/')
